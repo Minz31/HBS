@@ -1,9 +1,30 @@
 import logo from "../assets/stays_img.png";
-import { GlobeAltIcon, UserCircleIcon, Bars3Icon } from "@heroicons/react/24/outline";
+import {
+  GlobeAltIcon,
+  UserCircleIcon,
+  Bars3Icon,
+} from "@heroicons/react/24/outline";
+import { useState, useRef, useEffect } from "react";
+import MenuDropdown from "./MenuDropdown";
 
 const Navbar = () => {
+  const [openMenu, setOpenMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpenMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
-    <nav className="w-full bg-white border-b-4 shadow-sm ">
+    <nav className="w-full bg-white border-b shadow-sm">
       <div className="w-full flex items-center justify-between h-20 px-12">
 
         {/* Logo */}
@@ -28,10 +49,19 @@ const Navbar = () => {
             Sign in
           </button>
 
-          <button className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2 hover:bg-yellow-50">
-            <Bars3Icon className="h-5 w-5" />
-            Menu
-          </button>
+          {/* Menu Button + Dropdown */}
+          <div ref={menuRef} className="relative">
+            <button
+              onClick={() => setOpenMenu(!openMenu)}
+              className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2 hover:bg-yellow-50"
+            >
+              <Bars3Icon className="h-5 w-5" />
+              Menu
+            </button>
+
+            {/* Dropdown */}
+            <MenuDropdown open={openMenu} />
+          </div>
 
         </div>
       </div>

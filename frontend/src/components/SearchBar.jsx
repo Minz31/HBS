@@ -28,24 +28,23 @@ const SearchBar = () => {
   const [children, setChildren] = useState(0);
   const [rooms, setRooms] = useState(1);
   const [petsAllowed, setPetsAllowed] = useState(false);
-
+    
   // Outside click handler
-  useEffect(() => {
+    useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        calendarRef.current &&
-        !calendarRef.current.contains(e.target) &&
-        guestsRef.current &&
-        !guestsRef.current.contains(e.target)
-      ) {
+      if (openCalendar && calendarRef.current && !calendarRef.current.contains(e.target)) {
         setOpenCalendar(false);
+      }
+
+      if (openGuests && guestsRef.current && !guestsRef.current.contains(e.target)) {
         setOpenGuests(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [openCalendar, openGuests]);
+
 
   // ESC close
   useEffect(() => {
@@ -81,7 +80,7 @@ const SearchBar = () => {
 
         {/* Dates */}
         <div
-          className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r cursor-pointer hover:bg-gray-50"
+          className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r cursor-pointer hover:bg-yellow-50 transition rounded-xl"
           onClick={() => {
             setOpenCalendar(true);
             setOpenGuests(false);
@@ -97,9 +96,38 @@ const SearchBar = () => {
           </div>
         </div>
 
+        {/* Calendar Popup */}
+        {openCalendar && (
+          <div
+            ref={calendarRef}
+            className="absolute z-50 mt-4 left-0 bg-white shadow-2xl rounded-xl p-4"
+          >
+          <div className="flex justify-end mb-2">
+          <button
+            onClick={() => setOpenCalendar(false)}
+            className="p-1 rounded-full hover:bg-gray-100"
+          >
+            X
+          </button>
+        </div>
+
+            <DateRange
+              editableDateInputs={true}
+              onChange={(item) => setDateRange([item.selection])}
+              moveRangeOnFirstSelection={false}
+              ranges={dateRange}
+              months={2}
+              direction="horizontal"
+              className="rounded-lg"
+            />
+          </div>
+        )}
+
+
+
         {/* Guests */}
         <div
-          className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r cursor-pointer hover:bg-gray-50"
+          className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r cursor-pointer hover:bg-yellow-50 transition rounded-xl"
           onClick={() => {
             setOpenGuests(true);
             setOpenCalendar(false);
@@ -115,9 +143,10 @@ const SearchBar = () => {
         </div>
 
         {/* Search Button */}
-        <button className="bg-blue-600 hover:bg-blue-700 transition text-white font-semibold text-lg px-10 py-4 md:py-0">
-          Search
-        </button>
+       <button className="bg-blue-600 hover:bg-blue-700 transition text-white font-semibold text-lg px-10 py-3 rounded-xl mx-4 my-3 shadow-md">
+        Search
+      </button>
+
       </div>
 
       {/* Guests Popup */}
