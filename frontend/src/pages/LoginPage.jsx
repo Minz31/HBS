@@ -51,26 +51,26 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
             <div className="max-w-md w-full space-y-8">
                 {/* Header */}
                 <div className="text-center">
-                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
                         Sign in to your account
                     </h2>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                         Access your bookings, favorites, and more
                     </p>
                 </div>
 
                 {/* Test Credentials Helper */}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 transition-colors">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-blue-800">Test Credentials</span>
+                        <span className="text-sm font-medium text-blue-800 dark:text-blue-300">Test Credentials</span>
                         <button
                             type="button"
                             onClick={() => setShowCredentials(!showCredentials)}
-                            className="text-blue-600 hover:text-blue-800 text-sm underline"
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm underline transition-colors"
                         >
                             {showCredentials ? 'Hide' : 'Show'}
                         </button>
@@ -78,10 +78,10 @@ const LoginPage = () => {
 
                     {showCredentials && (
                         <div className="space-y-3 mt-3">
-                            <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-blue-100">
+                            <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-lg border border-blue-100 dark:border-gray-700 transition-colors">
                                 <div>
-                                    <p className="text-xs text-gray-500">Regular User</p>
-                                    <p className="text-sm font-mono text-gray-700">user@stays.in / password123</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Regular User</p>
+                                    <p className="text-sm font-mono text-gray-700 dark:text-gray-200">user@stays.in / password123</p>
                                 </div>
                                 <button
                                     type="button"
@@ -91,10 +91,10 @@ const LoginPage = () => {
                                     Use
                                 </button>
                             </div>
-                            <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-blue-100">
+                            <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-lg border border-blue-100 dark:border-gray-700 transition-colors">
                                 <div>
-                                    <p className="text-xs text-gray-500">Admin User</p>
-                                    <p className="text-sm font-mono text-gray-700">admin@stays.in / admin123</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Admin User</p>
+                                    <p className="text-sm font-mono text-gray-700 dark:text-gray-200">admin@stays.in / admin123</p>
                                 </div>
                                 <button
                                     type="button"
@@ -109,10 +109,10 @@ const LoginPage = () => {
                 </div>
 
                 {/* Login Form */}
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                <form className="mt-8 space-y-6 text-left" onSubmit={handleSubmit}>
                     <div className="space-y-4">
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
                                 Email address
                             </label>
                             <input
@@ -123,12 +123,12 @@ const LoginPage = () => {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
+                                className="appearance-none relative block w-full px-4 py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all shadow-sm"
                                 placeholder="Enter your email"
                             />
                         </div>
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">
                                 Password
                             </label>
                             <input
@@ -139,7 +139,7 @@ const LoginPage = () => {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
+                                className="appearance-none relative block w-full px-4 py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all shadow-sm"
                                 placeholder="Enter your password"
                             />
                         </div>
@@ -151,15 +151,15 @@ const LoginPage = () => {
                                 id="remember-me"
                                 name="remember-me"
                                 type="checkbox"
-                                className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                                className="h-4 w-4 text-yellow-600 dark:text-yellow-500 focus:ring-yellow-500 border-gray-300 dark:border-gray-600 rounded transition-colors"
                             />
-                            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-400 transition-colors">
                                 Remember me
                             </label>
                         </div>
 
                         <div className="text-sm">
-                            <a href="#" className="font-medium text-yellow-600 hover:text-yellow-500">
+                            <a href="#" className="font-medium text-yellow-600 dark:text-yellow-500 hover:text-yellow-500 dark:hover:text-yellow-400 transition-colors">
                                 Forgot password?
                             </a>
                         </div>
@@ -186,9 +186,9 @@ const LoginPage = () => {
                     </div>
 
                     <div className="text-center">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 transition-colors">
                             Don't have an account?{' '}
-                            <Link to="/register" className="font-medium text-yellow-600 hover:text-yellow-500">
+                            <Link to="/register" className="font-medium text-yellow-600 dark:text-yellow-500 hover:text-yellow-500 dark:hover:text-yellow-400 transition-colors">
                                 Sign up for free
                             </Link>
                         </p>

@@ -101,11 +101,11 @@ const SearchBar = ({ initialValues }) => {
     <div className="relative mt-10">
 
       {/* Search Bar */}
-      <div className="bg-white shadow-xl rounded-2xl border overflow-hidden flex flex-col md:flex-row">
+      <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl border dark:border-gray-700 overflow-hidden flex flex-col md:flex-row transition-colors">
 
         {/* Destination with Animated Label */}
-        <div className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r">
-          <MagnifyingGlassIcon className="h-6 w-6 text-gray-500" />
+        <div className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r dark:border-gray-700">
+          <MagnifyingGlassIcon className="h-6 w-6 text-gray-500 dark:text-gray-400" />
           <div className="w-full">
             {/* Animated Label */}
             <p
@@ -122,7 +122,7 @@ const SearchBar = ({ initialValues }) => {
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
               placeholder="Where to?"
-              className="outline-none font-semibold text-lg w-full"
+              className="outline-none font-semibold text-lg w-full bg-transparent dark:text-white dark:placeholder-gray-400"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && destination.trim()) {
                   const params = new URLSearchParams({
@@ -143,7 +143,7 @@ const SearchBar = ({ initialValues }) => {
           {destination && (
             <button
               onClick={() => setDestination("")}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
             >
               <XMarkIcon className="h-5 w-5 text-gray-400" />
             </button>
@@ -152,16 +152,16 @@ const SearchBar = ({ initialValues }) => {
 
         {/* Dates */}
         <div
-          className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r cursor-pointer hover:bg-yellow-50 transition rounded-xl"
+          className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r dark:border-gray-700 cursor-pointer hover:bg-yellow-50 dark:hover:bg-gray-700 transition rounded-xl"
           onClick={() => {
             setOpenCalendar(true);
             setOpenGuests(false);
           }}
         >
-          <CalendarIcon className="h-6 w-6 text-gray-500" />
+          <CalendarIcon className="h-6 w-6 text-gray-500 dark:text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500">Check-in/out</p>
-            <p className="font-semibold text-lg">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Check-in/out</p>
+            <p className="font-semibold text-lg dark:text-white">
               {format(dateRange[0].startDate, "dd MMM")} -{" "}
               {format(dateRange[0].endDate, "dd MMM")}
             </p>
@@ -172,45 +172,47 @@ const SearchBar = ({ initialValues }) => {
         {openCalendar && (
           <div
             ref={calendarRef}
-            className="absolute z-50 mt-4 left-0 bg-white shadow-2xl rounded-xl p-4"
+            className="absolute z-50 mt-4 left-0 bg-white dark:bg-gray-800 shadow-2xl rounded-xl p-4 border dark:border-gray-700"
           >
             <div className="flex justify-end mb-2">
               <button
                 onClick={() => setOpenCalendar(false)}
-                className="p-1 rounded-full hover:bg-gray-100"
+                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <XMarkIcon className="h-5 w-5 text-gray-500" />
               </button>
             </div>
 
-            <DateRange
-              editableDateInputs={true}
-              onChange={(item) => {
-                const sel = item.selection;
-                const start = sel.startDate;
-                const end =
-                  sel.endDate && sel.endDate >= sel.startDate
-                    ? sel.endDate
-                    : sel.startDate;
-                setDateRange([{ startDate: start, endDate: end, key: "selection" }]);
-              }}
-              moveRangeOnFirstSelection={false}
-              ranges={dateRange}
-              months={2}
-              direction="horizontal"
-              className="rounded-lg"
-              minDate={new Date()}
-            />
+            <div className="dark:invert dark:hue-rotate-180">
+              <DateRange
+                editableDateInputs={true}
+                onChange={(item) => {
+                  const sel = item.selection;
+                  const start = sel.startDate;
+                  const end =
+                    sel.endDate && sel.endDate >= sel.startDate
+                      ? sel.endDate
+                      : sel.startDate;
+                  setDateRange([{ startDate: start, endDate: end, key: "selection" }]);
+                }}
+                moveRangeOnFirstSelection={false}
+                ranges={dateRange}
+                months={2}
+                direction="horizontal"
+                className="rounded-lg"
+                minDate={new Date()}
+              />
+            </div>
             <div className="flex justify-end gap-2 mt-3">
               <button
                 onClick={() => setOpenCalendar(false)}
-                className="px-4 py-2 border rounded-lg font-semibold hover:bg-gray-50"
+                className="px-4 py-2 border dark:border-gray-600 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => setOpenCalendar(false)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
               >
                 Apply
               </button>
@@ -222,20 +224,21 @@ const SearchBar = ({ initialValues }) => {
 
         {/* Guests */}
         <div
-          className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r cursor-pointer hover:bg-yellow-50 transition rounded-xl"
+          className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r dark:border-gray-700 cursor-pointer hover:bg-yellow-50 dark:hover:bg-gray-700 transition rounded-xl"
           onClick={() => {
             setOpenGuests(true);
             setOpenCalendar(false);
           }}
         >
-          <UserIcon className="h-6 w-6 text-gray-500" />
+          <UserIcon className="h-6 w-6 text-gray-500 dark:text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500">Guests and rooms</p>
-            <p className="font-semibold text-lg">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Guests and rooms</p>
+            <p className="font-semibold text-lg dark:text-white">
               {adults} Guests, {rooms} Room
             </p>
           </div>
         </div>
+
 
         {/* Search Button */}
         <button
@@ -268,46 +271,46 @@ const SearchBar = ({ initialValues }) => {
       {openGuests && (
         <div
           ref={guestsRef}
-          className="absolute z-50 mt-4 right-0 bg-white shadow-2xl rounded-xl p-6 w-80"
+          className="absolute z-50 mt-4 right-0 bg-white dark:bg-gray-800 shadow-2xl rounded-xl p-6 w-80 border dark:border-gray-700 transition-colors"
         >
           {/* Adults */}
           <div className="flex justify-between items-center mb-4">
-            <span className="font-semibold">Adults</span>
+            <span className="font-semibold dark:text-white">Adults</span>
             <div className="flex items-center gap-3">
               <button onClick={() => setAdults(Math.max(1, adults - 1))}>
-                <MinusIcon className="h-6 w-6 border rounded-full p-1" />
+                <MinusIcon className="h-6 w-6 border dark:border-gray-600 rounded-full p-1 dark:text-white" />
               </button>
-              <span>{adults}</span>
+              <span className="dark:text-white">{adults}</span>
               <button onClick={() => setAdults(adults + 1)}>
-                <PlusIcon className="h-6 w-6 border rounded-full p-1" />
+                <PlusIcon className="h-6 w-6 border dark:border-gray-600 rounded-full p-1 dark:text-white" />
               </button>
             </div>
           </div>
 
           {/* Children */}
           <div className="flex justify-between items-center mb-4">
-            <span className="font-semibold">Children</span>
+            <span className="font-semibold dark:text-white">Children</span>
             <div className="flex items-center gap-3">
               <button onClick={() => setChildren(Math.max(0, children - 1))}>
-                <MinusIcon className="h-6 w-6 border rounded-full p-1" />
+                <MinusIcon className="h-6 w-6 border dark:border-gray-600 rounded-full p-1 dark:text-white" />
               </button>
-              <span>{children}</span>
+              <span className="dark:text-white">{children}</span>
               <button onClick={() => setChildren(children + 1)}>
-                <PlusIcon className="h-6 w-6 border rounded-full p-1" />
+                <PlusIcon className="h-6 w-6 border dark:border-gray-600 rounded-full p-1 dark:text-white" />
               </button>
             </div>
           </div>
 
           {/* Rooms */}
           <div className="flex justify-between items-center mb-6">
-            <span className="font-semibold">Rooms</span>
+            <span className="font-semibold dark:text-white">Rooms</span>
             <div className="flex items-center gap-3">
               <button onClick={() => setRooms(Math.max(1, rooms - 1))}>
-                <MinusIcon className="h-6 w-6 border rounded-full p-1" />
+                <MinusIcon className="h-6 w-6 border dark:border-gray-600 rounded-full p-1 dark:text-white" />
               </button>
-              <span>{rooms}</span>
+              <span className="dark:text-white">{rooms}</span>
               <button onClick={() => setRooms(rooms + 1)}>
-                <PlusIcon className="h-6 w-6 border rounded-full p-1" />
+                <PlusIcon className="h-6 w-6 border dark:border-gray-600 rounded-full p-1 dark:text-white" />
               </button>
             </div>
           </div>
@@ -318,9 +321,9 @@ const SearchBar = ({ initialValues }) => {
               type="checkbox"
               checked={petsAllowed}
               onChange={() => setPetsAllowed(!petsAllowed)}
-              className="w-4 h-4"
+              className="w-4 h-4 accent-blue-600"
             />
-            <span>Pet-friendly stays only</span>
+            <span className="dark:text-white">Pet-friendly stays only</span>
           </div>
 
           {/* Buttons */}
@@ -332,14 +335,14 @@ const SearchBar = ({ initialValues }) => {
                 setRooms(1);
                 setPetsAllowed(false);
               }}
-              className="text-gray-400 font-semibold"
+              className="text-gray-400 font-semibold hover:text-gray-600 transition-colors"
             >
               RESET
             </button>
 
             <button
               onClick={() => setOpenGuests(false)}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
             >
               Apply
             </button>

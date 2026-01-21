@@ -2,6 +2,7 @@ import SearchBar from "../components/SearchBar";
 import { FaHotel, FaCreditCard, FaStar } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import PopularSearches from "../components/PopularSearches";
+import RecentlyViewedHotels from "../components/RecentlyViewedHotels";
 
 function Home() {
   const { isAuthenticated, user } = useAuth();
@@ -10,7 +11,7 @@ function Home() {
     <div className="max-w-[1200px] mx-auto mt-8 px-4">
 
       {/* Personalized Greeting */}
-      <h1 className="text-3xl font-bold text-center md:text-left">
+      <h1 className="text-3xl font-bold text-center md:text-left dark:text-white transition-colors">
         {isAuthenticated
           ? `Ready to find a great hotel deal, ${user?.name}?`
           : 'Save up to 55% on your next hotel stay'
@@ -18,46 +19,52 @@ function Home() {
       </h1>
 
       {isAuthenticated && (
-        <p className="text-gray-600 mt-2 text-lg text-center md:text-left">
+        <p className="text-gray-600 mt-2 text-lg text-center md:text-left dark:text-gray-300">
           Save up to 55% on your next hotel stay
         </p>
       )}
 
       <SearchBar />
+      
+      {/* Recently Viewed Hotels - Only shows if user has viewed hotels */}
+      <RecentlyViewedHotels />
+      
+      {/* Popular Searches - Cities & Destinations tabs */}
       <PopularSearches />
 
+
       {/* How It Works */}
-      <div className="py-20 bg-gray-50">
+      <div className="py-20 bg-gray-50 dark:bg-gray-900 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center mb-12">How It Works</h2>
+          <h2 className="text-4xl font-bold text-center mb-12 dark:text-white">How It Works</h2>
 
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="bg-primary-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaHotel className="text-primary-600 text-4xl" />
+              <div className="bg-primary-100 dark:bg-blue-900/30 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors">
+                <FaHotel className="text-primary-600 dark:text-blue-400 text-4xl" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Search</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-2 dark:text-white">Search</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 Find hotels by location, dates, and preferences
               </p>
             </div>
 
             <div className="text-center">
-              <div className="bg-primary-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaStar className="text-primary-600 text-4xl" />
+              <div className="bg-primary-100 dark:bg-blue-900/30 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors">
+                <FaStar className="text-primary-600 dark:text-blue-400 text-4xl" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Compare</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-2 dark:text-white">Compare</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 Read reviews and compare prices to find the best deal
               </p>
             </div>
 
             <div className="text-center">
-              <div className="bg-primary-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaCreditCard className="text-primary-600 text-4xl" />
+              <div className="bg-primary-100 dark:bg-blue-900/30 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors">
+                <FaCreditCard className="text-primary-600 dark:text-blue-400 text-4xl" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Book</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-2 dark:text-white">Book</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 Secure your booking with instant confirmation
               </p>
             </div>

@@ -1,8 +1,9 @@
 import logo from "../assets/stays_img.png";
 import {
-  GlobeAltIcon,
   UserCircleIcon,
   ShoppingCartIcon,
+  SunIcon,
+  MoonIcon,
 } from "@heroicons/react/24/outline";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -12,6 +13,10 @@ import { useAuth } from "../context/AuthContext";
 const Navbar = () => {
   const [openMenu, setOpenMenu] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem("darkMode");
+    return saved === "true";
+  });
   const menuRef = useRef(null);
   const navigate = useNavigate();
   const { isAuthenticated, user, getUserInitials } = useAuth();
@@ -37,6 +42,15 @@ const Navbar = () => {
     };
   }, []);
 
+  // Apply dark mode on initial load
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -49,7 +63,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="w-full bg-white border-b shadow-sm">
+    <nav className="w-full bg-white dark:bg-gray-800 border-b dark:border-gray-700 shadow-sm transition-colors duration-300">
       <div className="w-full flex items-center justify-between h-20 px-4 md:px-12">
 
         {/* Logo */}
@@ -57,23 +71,35 @@ const Navbar = () => {
           <img
             src={logo}
             alt="stays.in"
-            className="h-12 object-contain cursor-pointer"
+            className="h-12 object-contain cursor-pointer dark:brightness-110"
           />
         </Link>
 
         {/* Right Controls */}
         <div className="flex items-center gap-4">
 
-          {/* Language/Currency Button */}
-          <button className="flex items-center gap-2 border border-yellow-400 rounded-xl px-4 py-2 hover:bg-yellow-50 transition-colors">
-            <GlobeAltIcon className="h-5 w-5" />
-            EN · ₹
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={() => {
+              const newMode = !darkMode;
+              setDarkMode(newMode);
+              localStorage.setItem("darkMode", String(newMode));
+              document.documentElement.classList.toggle("dark", newMode);
+            }}
+            className="flex items-center gap-2 border border-yellow-400 rounded-xl px-4 py-2 hover:bg-yellow-50 dark:hover:bg-gray-700 transition-colors dark:text-white"
+            title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {darkMode ? (
+              <SunIcon className="h-5 w-5 text-yellow-500" />
+            ) : (
+              <MoonIcon className="h-5 w-5" />
+            )}
           </button>
 
           {/* Cart Icon */}
           <Link
             to="/cart"
-            className="relative flex items-center gap-2 border border-yellow-400 rounded-xl px-4 py-2 hover:bg-yellow-50 transition-colors"
+            className="relative flex items-center gap-2 border border-yellow-400 rounded-xl px-4 py-2 hover:bg-yellow-50 dark:hover:bg-gray-700 transition-colors dark:text-white"
           >
             <ShoppingCartIcon className="h-5 w-5" />
             {cartCount > 0 && (
@@ -100,7 +126,7 @@ const Navbar = () => {
               /* Not Logged In - Show Sign In Button */
               <button
                 onClick={() => navigate("/login")}
-                className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2 font-semibold hover:bg-yellow-50 transition-colors"
+                className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2 font-semibold hover:bg-yellow-50 dark:hover:bg-gray-700 transition-colors dark:text-white"
               >
                 <UserCircleIcon className="h-5 w-5" />
                 Sign in
@@ -118,7 +144,7 @@ const Navbar = () => {
             <div className="relative">
               <button
                 onClick={() => setOpenMenu(!openMenu)}
-                className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2 hover:bg-yellow-50 transition-colors"
+                className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2 hover:bg-yellow-50 dark:hover:bg-gray-700 transition-colors dark:text-white"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />

@@ -44,38 +44,38 @@ const destinations = [
   {
     state: "Rajasthan",
     image: "https://images.unsplash.com/photo-1548013146-72479768bada?w=800&q=60",
-    cities: ["Jaipur", "Udaipur", "Jodhpur", "Jaisalmer", "Pushkar"],
-    totalHotels: 12500,
+    cities: ["Jaipur", "Udaipur", "Jodhpur"],
+    totalHotels: 7500,
   },
   {
     state: "Maharashtra",
     image: "https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=800&q=60",
-    cities: ["Mumbai", "Pune", "Nashik", "Lonavala", "Mahabaleshwar"],
-    totalHotels: 15200,
+    cities: ["Mumbai", "Pune", "Lonavala"],
+    totalHotels: 9200,
   },
   {
     state: "Goa",
     image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&q=60",
-    cities: ["Panaji", "Calangute", "Candolim", "Baga", "Anjuna"],
-    totalHotels: 8500,
+    cities: ["Panaji", "Calangute", "Candolim"],
+    totalHotels: 5500,
   },
   {
     state: "Kerala",
     image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=800&q=60",
-    cities: ["Kochi", "Munnar", "Alleppey", "Trivandrum", "Kovalam"],
-    totalHotels: 9800,
+    cities: ["Kochi", "Munnar", "Alleppey"],
+    totalHotels: 6800,
   },
   {
     state: "Karnataka",
     image: "https://images.unsplash.com/photo-1600100397608-6a6d32b585f9?w=800&q=60",
-    cities: ["Bangalore", "Mysore", "Hampi", "Coorg", "Mangalore"],
-    totalHotels: 11200,
+    cities: ["Bangalore", "Mysore", "Coorg"],
+    totalHotels: 7200,
   },
   {
     state: "Tamil Nadu",
     image: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=800&q=60",
-    cities: ["Chennai", "Ooty", "Madurai", "Pondicherry", "Kodaikanal"],
-    totalHotels: 10500,
+    cities: ["Chennai", "Ooty", "Pondicherry"],
+    totalHotels: 6500,
   },
 ];
 
@@ -90,7 +90,7 @@ const CityCard = ({ item, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="text-left bg-white rounded-2xl shadow-sm border overflow-hidden min-w-[260px] hover:shadow-md transition"
+      className="text-left bg-white dark:bg-gray-800 rounded-2xl shadow-sm border dark:border-gray-700 overflow-hidden min-w-[260px] hover:shadow-md transition group"
     >
       <img
         src={item.image}
@@ -98,9 +98,9 @@ const CityCard = ({ item, onClick }) => {
         className="h-40 w-full object-cover"
       />
       <div className="p-4">
-        <p className="text-lg font-bold">{item.name}</p>
-        <p className="text-sm text-gray-600">{item.hotels.toLocaleString()} Hotels</p>
-        <p className="text-sm font-semibold">{currency(item.avg)} Avg.</p>
+        <p className="text-lg font-bold dark:text-white">{item.name}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">{item.hotels.toLocaleString()} Hotels</p>
+        <p className="text-sm font-semibold dark:text-gray-300">{currency(item.avg)} Avg.</p>
       </div>
     </button>
   );
@@ -110,7 +110,7 @@ const DestinationCard = ({ item, navigate }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border overflow-hidden min-w-[300px]">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border dark:border-gray-700 overflow-hidden min-w-[300px] h-fit transition-colors">
       <img
         src={item.image}
         alt={item.state}
@@ -119,21 +119,21 @@ const DestinationCard = ({ item, navigate }) => {
       <div className="p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-lg font-bold">{item.state}</p>
-            <p className="text-sm text-gray-600">{item.totalHotels.toLocaleString()} Hotels</p>
+            <p className="text-lg font-bold dark:text-white">{item.state}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{item.totalHotels.toLocaleString()} Hotels</p>
           </div>
           <button
             onClick={() => setExpanded(!expanded)}
-            className="p-2 hover:bg-gray-100 rounded-full transition"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition"
           >
             <ChevronDownIcon
-              className={`h-5 w-5 transition-transform ${expanded ? "rotate-180" : ""}`}
+              className={`h-5 w-5 dark:text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`}
             />
           </button>
         </div>
         {expanded && (
-          <div className="mt-3 pt-3 border-t">
-            <p className="text-xs text-gray-500 mb-2">Popular cities:</p>
+          <div className="mt-3 pt-3 border-t dark:border-gray-700">
+            <p className="text-xs text-gray-500 dark:text-gray-500 mb-2 font-semibold">Popular cities:</p>
             <div className="flex flex-wrap gap-2">
               {item.cities.map((city) => (
                 <button
@@ -141,7 +141,7 @@ const DestinationCard = ({ item, navigate }) => {
                   onClick={() =>
                     navigate(`/search?destination=${encodeURIComponent(city)}&adults=2&rooms=1`)
                   }
-                  className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm hover:bg-blue-100 transition"
+                  className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-sm hover:bg-blue-100 dark:hover:bg-blue-800/40 transition"
                 >
                   {city}
                 </button>
@@ -164,13 +164,15 @@ const PopularSearches = () => {
   };
 
   return (
-    <div className="mt-10">
-      <h2 className="text-2xl font-bold mb-4">Popular searches</h2>
-      <div className="flex gap-6 mb-4">
+    <div className="mt-10 mb-20">
+      <h2 className="text-2xl font-bold mb-4 dark:text-white transition-colors">Popular searches</h2>
+      <div className="flex gap-6 mb-4 border-b dark:border-gray-700">
         <button
           onClick={() => setTab("Cities")}
           className={`font-semibold pb-2 border-b-2 transition ${
-            tab === "Cities" ? "text-black border-blue-600" : "text-gray-500 border-transparent"
+            tab === "Cities" 
+              ? "text-blue-600 border-blue-600 dark:text-blue-400 dark:border-blue-400" 
+              : "text-gray-500 border-transparent dark:text-gray-400"
           }`}
         >
           Cities
@@ -178,7 +180,9 @@ const PopularSearches = () => {
         <button
           onClick={() => setTab("Destinations")}
           className={`font-semibold pb-2 border-b-2 transition ${
-            tab === "Destinations" ? "text-black border-blue-600" : "text-gray-500 border-transparent"
+            tab === "Destinations" 
+              ? "text-blue-600 border-blue-600 dark:text-blue-400 dark:border-blue-400" 
+              : "text-gray-500 border-transparent dark:text-gray-400"
           }`}
         >
           Destinations
