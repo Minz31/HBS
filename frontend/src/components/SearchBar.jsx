@@ -14,6 +14,9 @@ import {
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 
+// Animated label options for the search bar
+const SEARCH_LABELS = ["Hotel", "Landmark", "Destination", "City", "Resort", "Address"];
+
 const SearchBar = ({ initialValues }) => {
   // Helper to parse dates like "21 Jan"
   const parseDate = (dateStr) => {
@@ -26,6 +29,10 @@ const SearchBar = ({ initialValues }) => {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openGuests, setOpenGuests] = useState(false);
   const [destination, setDestination] = useState(initialValues?.destination || "");
+
+  // Animated label state
+  const [currentLabelIndex, setCurrentLabelIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const calendarRef = useRef(null);
   const guestsRef = useRef(null);
@@ -43,9 +50,25 @@ const SearchBar = ({ initialValues }) => {
   const [children, setChildren] = useState(Number(initialValues?.children) || 0);
   const [rooms, setRooms] = useState(Number(initialValues?.rooms) || 1);
   const [petsAllowed, setPetsAllowed] = useState(initialValues?.pets === "true" || false);
-    
+
+  // Auto-changing label animation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsAnimating(true);
+
+      // After fade out, change the text
+      setTimeout(() => {
+        setCurrentLabelIndex((prev) => (prev + 1) % SEARCH_LABELS.length);
+        setIsAnimating(false);
+      }, 300); // Half of the transition duration
+
+    }, 2500); // Change every 2.5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Outside click handler
-    useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (e) => {
       if (openCalendar && calendarRef.current && !calendarRef.current.contains(e.target)) {
         setOpenCalendar(false);
@@ -80,16 +103,26 @@ const SearchBar = ({ initialValues }) => {
       {/* Search Bar */}
       <div className="bg-white shadow-xl rounded-2xl border overflow-hidden flex flex-col md:flex-row">
 
-        {/* Destination */}
+        {/* Destination with Animated Label */}
         <div className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r">
           <MagnifyingGlassIcon className="h-6 w-6 text-gray-500" />
           <div className="w-full">
+            {/* Animated Label */}
+            <p
+              className={`text-xs transition-all duration-300 ease-in-out ${isAnimating
+                  ? 'opacity-0 transform -translate-y-1'
+                  : 'opacity-100 transform translate-y-0'
+                }`}
+              style={{ color: '#10B981' }}
+            >
+              {SEARCH_LABELS[currentLabelIndex]}
+            </p>
             <input
               type="text"
-              placeholder="Destination"
-              className="outline-none font-semibold text-lg w-full"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
+              placeholder="Where to?"
+              className="outline-none font-semibold text-lg w-full"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && destination.trim()) {
                   const params = new URLSearchParams({
@@ -106,6 +139,15 @@ const SearchBar = ({ initialValues }) => {
               }}
             />
           </div>
+          {/* Clear button when there's text */}
+          {destination && (
+            <button
+              onClick={() => setDestination("")}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <XMarkIcon className="h-5 w-5 text-gray-400" />
+            </button>
+          )}
         </div>
 
         {/* Dates */}
@@ -132,6 +174,15 @@ const SearchBar = ({ initialValues }) => {
             ref={calendarRef}
             className="absolute z-50 mt-4 left-0 bg-white shadow-2xl rounded-xl p-4"
           >
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={() => setOpenCalendar(false)}
+                className="p-1 rounded-full hover:bg-gray-100"
+              >
+                <XMarkIcon className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+
             <DateRange
               editableDateInputs={true}
               onChange={(item) => {
@@ -187,12 +238,9 @@ const SearchBar = ({ initialValues }) => {
         </div>
 
         {/* Search Button */}
-        {/* Search Button */}
         <button
           onClick={() => {
             if (!destination.trim()) {
-              // You might want to show a toast or highlight the input
-              // For now we just return
               return;
             }
             const params = new URLSearchParams({

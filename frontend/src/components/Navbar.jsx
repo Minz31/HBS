@@ -2,18 +2,19 @@ import logo from "../assets/stays_img.png";
 import {
   GlobeAltIcon,
   UserCircleIcon,
-  Bars3Icon,
   ShoppingCartIcon,
 } from "@heroicons/react/24/outline";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import MenuDropdown from "./MenuDropdown";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
   const [openMenu, setOpenMenu] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const menuRef = useRef(null);
   const navigate = useNavigate();
+  const { isAuthenticated, user, getUserInitials } = useAuth();
 
   // Update cart count on mount and when localStorage changes
   useEffect(() => {
@@ -63,7 +64,8 @@ const Navbar = () => {
         {/* Right Controls */}
         <div className="flex items-center gap-4">
 
-          <button className="flex items-center gap-2 border border-yellow-400 rounded-xl px-4 py-2 hover:bg-yellow-50">
+          {/* Language/Currency Button */}
+          <button className="flex items-center gap-2 border border-yellow-400 rounded-xl px-4 py-2 hover:bg-yellow-50 transition-colors">
             <GlobeAltIcon className="h-5 w-5" />
             EN · ₹
           </button>
@@ -71,7 +73,7 @@ const Navbar = () => {
           {/* Cart Icon */}
           <Link
             to="/cart"
-            className="relative flex items-center gap-2 border border-yellow-400 rounded-xl px-4 py-2 hover:bg-yellow-50"
+            className="relative flex items-center gap-2 border border-yellow-400 rounded-xl px-4 py-2 hover:bg-yellow-50 transition-colors"
           >
             <ShoppingCartIcon className="h-5 w-5" />
             {cartCount > 0 && (
@@ -81,25 +83,51 @@ const Navbar = () => {
             )}
           </Link>
 
-          <button 
-            onClick={() => navigate("/login")}
-            className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2 font-semibold hover:bg-yellow-50"
-          >
-            <UserCircleIcon className="h-5 w-5" />
-            Sign in
-          </button>
-
+          {/* User Avatar / Sign In Button */}
           <div ref={menuRef} className="relative">
-            <button
-              onClick={() => setOpenMenu(!openMenu)}
-              className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2 hover:bg-yellow-50"
-            >
-              <Bars3Icon className="h-5 w-5" />
-              Menu
-            </button>
+            {isAuthenticated ? (
+              /* Logged In - Show User Avatar with Initial */
+              <button
+                onClick={() => setOpenMenu(!openMenu)}
+                className="flex items-center gap-2 group"
+              >
+                {/* User Avatar Circle */}
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                  {getUserInitials()}
+                </div>
+              </button>
+            ) : (
+              /* Not Logged In - Show Sign In Button */
+              <button
+                onClick={() => navigate("/login")}
+                className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2 font-semibold hover:bg-yellow-50 transition-colors"
+              >
+                <UserCircleIcon className="h-5 w-5" />
+                Sign in
+              </button>
+            )}
 
-            <MenuDropdown open={openMenu} onClose={() => setOpenMenu(false)} />
+            {/* Dropdown Menu - Only shows when authenticated and clicked on avatar */}
+            {isAuthenticated && (
+              <MenuDropdown open={openMenu} onClose={() => setOpenMenu(false)} />
+            )}
           </div>
+
+          {/* Menu Button - Only show if NOT authenticated */}
+          {!isAuthenticated && (
+            <div className="relative">
+              <button
+                onClick={() => setOpenMenu(!openMenu)}
+                className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2 hover:bg-yellow-50 transition-colors"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+                Menu
+              </button>
+              <MenuDropdown open={openMenu} onClose={() => setOpenMenu(false)} />
+            </div>
+          )}
 
         </div>
       </div>
@@ -108,4 +136,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
