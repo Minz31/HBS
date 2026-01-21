@@ -13,9 +13,17 @@ import {
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 
+// Animated label options for the search bar
+const SEARCH_LABELS = ["Hotel", "Landmark", "Destination", "City", "Resort", "Address"];
+
 const SearchBar = () => {
   const [openCalendar, setOpenCalendar] = useState(false);
   const [openGuests, setOpenGuests] = useState(false);
+  const [destination, setDestination] = useState("");
+
+  // Animated label state
+  const [currentLabelIndex, setCurrentLabelIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const calendarRef = useRef(null);
   const guestsRef = useRef(null);
@@ -28,9 +36,25 @@ const SearchBar = () => {
   const [children, setChildren] = useState(0);
   const [rooms, setRooms] = useState(1);
   const [petsAllowed, setPetsAllowed] = useState(false);
-    
+
+  // Auto-changing label animation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsAnimating(true);
+
+      // After fade out, change the text
+      setTimeout(() => {
+        setCurrentLabelIndex((prev) => (prev + 1) % SEARCH_LABELS.length);
+        setIsAnimating(false);
+      }, 300); // Half of the transition duration
+
+    }, 2500); // Change every 2.5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Outside click handler
-    useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (e) => {
       if (openCalendar && calendarRef.current && !calendarRef.current.contains(e.target)) {
         setOpenCalendar(false);
@@ -65,17 +89,37 @@ const SearchBar = () => {
       {/* Search Bar */}
       <div className="bg-white shadow-xl rounded-2xl border overflow-hidden flex flex-col md:flex-row">
 
-        {/* Destination */}
+        {/* Destination with Animated Label */}
         <div className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r">
           <MagnifyingGlassIcon className="h-6 w-6 text-gray-500" />
           <div className="w-full">
-            <p className="text-xs text-gray-500">Destination</p>
+            {/* Animated Label */}
+            <p
+              className={`text-xs transition-all duration-300 ease-in-out ${isAnimating
+                  ? 'opacity-0 transform -translate-y-1'
+                  : 'opacity-100 transform translate-y-0'
+                }`}
+              style={{ color: '#10B981' }} // Green color like Trivago
+            >
+              {SEARCH_LABELS[currentLabelIndex]}
+            </p>
             <input
               type="text"
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
               placeholder="Where to?"
               className="outline-none font-semibold text-lg w-full"
             />
           </div>
+          {/* Clear button when there's text */}
+          {destination && (
+            <button
+              onClick={() => setDestination("")}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <XMarkIcon className="h-5 w-5 text-gray-400" />
+            </button>
+          )}
         </div>
 
         {/* Dates */}
@@ -102,14 +146,14 @@ const SearchBar = () => {
             ref={calendarRef}
             className="absolute z-50 mt-4 left-0 bg-white shadow-2xl rounded-xl p-4"
           >
-          <div className="flex justify-end mb-2">
-          <button
-            onClick={() => setOpenCalendar(false)}
-            className="p-1 rounded-full hover:bg-gray-100"
-          >
-            X
-          </button>
-        </div>
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={() => setOpenCalendar(false)}
+                className="p-1 rounded-full hover:bg-gray-100"
+              >
+                X
+              </button>
+            </div>
 
             <DateRange
               editableDateInputs={true}
@@ -143,9 +187,9 @@ const SearchBar = () => {
         </div>
 
         {/* Search Button */}
-       <button className="bg-blue-600 hover:bg-blue-700 transition text-white font-semibold text-lg px-10 py-3 rounded-xl mx-4 my-3 shadow-md">
-        Search
-      </button>
+        <button className="bg-blue-600 hover:bg-blue-700 transition text-white font-semibold text-lg px-10 py-3 rounded-xl mx-4 my-3 shadow-md">
+          Search
+        </button>
 
       </div>
 

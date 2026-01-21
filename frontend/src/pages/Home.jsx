@@ -1,22 +1,29 @@
 import SearchBar from "../components/SearchBar";
-import Footer from './../components/Footer';
-import { FaSearch, FaCalendar, FaUsers, FaHotel, FaCreditCard, FaStar } from 'react-icons/fa';
-
+import { FaHotel, FaCreditCard, FaStar } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 function Home() {
+  const { isAuthenticated, user } = useAuth();
+
   return (
     <div className="max-w-[1200px] mx-auto mt-8 px-4">
 
-
+      {/* Personalized Greeting */}
       <h1 className="text-3xl font-bold text-center md:text-left">
-        Save up to 55% on your next hotel stay
+        {isAuthenticated
+          ? `Ready to find a great hotel deal, ${user?.name}?`
+          : 'Save up to 55% on your next hotel stay'
+        }
       </h1>
 
-      {/* <p className="text-gray-600 mt-2 text-lg text-center md:text-left">
-        Get Offers 
-      </p> */}
+      {isAuthenticated && (
+        <p className="text-gray-600 mt-2 text-lg text-center md:text-left">
+          Save up to 55% on your next hotel stay
+        </p>
+      )}
 
       <SearchBar />
+
       {/* How It Works */}
       <div className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
