@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { TrashIcon, ShoppingCartIcon } from "@heroicons/react/24/outline";
 
@@ -6,12 +6,9 @@ const currency = (v) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([]);
-
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("hotelCart") || "[]");
-    setCartItems(stored);
-  }, []);
+  const [cartItems, setCartItems] = useState(() => {
+    return JSON.parse(localStorage.getItem("hotelCart") || "[]");
+  });
 
   const removeItem = (index) => {
     const updated = cartItems.filter((_, i) => i !== index);

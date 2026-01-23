@@ -1,340 +1,32 @@
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { useState, useMemo, useCallback } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { HeartIcon, MapPinIcon, ShoppingCartIcon } from "@heroicons/react/24/solid";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import toast from "react-hot-toast";
 import SearchBar from "../components/SearchBar";
 import { mockHotels } from "../data/mockData";
 import { addToRecentlyViewed } from "../components/RecentlyViewedHotels";
 
 
-const mockResults = [
-  // Rajasthan - Jaipur, Udaipur, Jodhpur
-  {
-    id: 1,
-    name: "Rambagh Palace",
-    city: "Jaipur",
-    state: "Rajasthan",
-    image: "https://images.unsplash.com/photo-1501117716987-c8eab037d85b?w=800&q=60",
-    distance: "2.6 km to City centre",
-    location: "Civil Lines, Jaipur",
-    ratingScore: 9.6,
-    ratingText: "Excellent",
-    ratingCount: 15715,
-    price: 50373,
-    originalPrice: 62500,
-    meals: "Breakfast included",
-    amenities: ["Free WiFi", "Pool", "Spa", "Restaurant"],
-    roomType: "Deluxe Suite",
-  },
-  {
-    id: 2,
-    name: "The Oberoi Udaivilas",
-    city: "Udaipur",
-    state: "Rajasthan",
-    image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=60",
-    distance: "3.2 km to City centre",
-    location: "Lake Pichola, Udaipur",
-    ratingScore: 9.8,
-    ratingText: "Exceptional",
-    ratingCount: 9876,
-    price: 45000,
-    originalPrice: 55000,
-    meals: "All meals included",
-    amenities: ["Free WiFi", "Lake View", "Spa", "Pool"],
-    roomType: "Premier Lake View Room",
-  },
-  {
-    id: 3,
-    name: "Umaid Bhawan Palace",
-    city: "Jodhpur",
-    state: "Rajasthan",
-    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=60",
-    distance: "4.5 km to City centre",
-    location: "Circuit House Road, Jodhpur",
-    ratingScore: 9.7,
-    ratingText: "Exceptional",
-    ratingCount: 8234,
-    price: 48000,
-    originalPrice: 60000,
-    meals: "Breakfast included",
-    amenities: ["Free WiFi", "Pool", "Spa", "Garden"],
-    roomType: "Heritage Suite",
-  },
-  // Maharashtra - Mumbai, Pune, Lonavala
-  {
-    id: 4,
-    name: "Taj Lands End",
-    city: "Mumbai",
-    state: "Maharashtra",
-    image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=60",
-    distance: "5.1 km to City centre",
-    location: "Bandra West, Mumbai",
-    ratingScore: 9.2,
-    ratingText: "Excellent",
-    ratingCount: 12340,
-    price: 18500,
-    originalPrice: 22000,
-    meals: "Breakfast included",
-    amenities: ["Free WiFi", "Sea View", "Spa", "Restaurant"],
-    roomType: "Ocean View Room",
-  },
-  {
-    id: 5,
-    name: "JW Marriott Pune",
-    city: "Pune",
-    state: "Maharashtra",
-    image: "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&q=60",
-    distance: "3.8 km to City centre",
-    location: "Senapati Bapat Road, Pune",
-    ratingScore: 9.0,
-    ratingText: "Excellent",
-    ratingCount: 7654,
-    price: 12500,
-    originalPrice: 15000,
-    meals: "Breakfast & Dinner",
-    amenities: ["Free WiFi", "Pool", "Gym", "Restaurant"],
-    roomType: "Executive Room",
-  },
-  {
-    id: 6,
-    name: "The Machan",
-    city: "Lonavala",
-    state: "Maharashtra",
-    image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=60",
-    distance: "2.0 km to Hill Station",
-    location: "Jambulne, Lonavala",
-    ratingScore: 9.4,
-    ratingText: "Exceptional",
-    ratingCount: 4532,
-    price: 25000,
-    originalPrice: 30000,
-    meals: "All meals included",
-    amenities: ["Tree House", "Nature View", "Private Deck", "Restaurant"],
-    roomType: "Canopy Machan",
-  },
-  // Goa - Panaji, Calangute, Candolim
-  {
-    id: 7,
-    name: "Cidade de Goa",
-    city: "Panaji",
-    state: "Goa",
-    image: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&q=60",
-    distance: "3.5 km to City centre",
-    location: "Vainguinim Beach, Panaji",
-    ratingScore: 8.8,
-    ratingText: "Excellent",
-    ratingCount: 6789,
-    price: 14000,
-    originalPrice: 17500,
-    meals: "Breakfast included",
-    amenities: ["Free WiFi", "Beach Access", "Pool", "Spa"],
-    roomType: "Sea View Room",
-  },
-  {
-    id: 8,
-    name: "Taj Fort Aguada Resort",
-    city: "Calangute",
-    state: "Goa",
-    image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=60",
-    distance: "1.2 km to Beach",
-    location: "Sinquerim, Calangute",
-    ratingScore: 9.1,
-    ratingText: "Excellent",
-    ratingCount: 8976,
-    price: 22000,
-    originalPrice: 27500,
-    meals: "Breakfast & Dinner",
-    amenities: ["Free WiFi", "Beach Access", "Pool", "Spa"],
-    roomType: "Premium Sea View",
-  },
-  {
-    id: 9,
-    name: "Vivanta Goa",
-    city: "Candolim",
-    state: "Goa",
-    image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=60",
-    distance: "0.8 km to Beach",
-    location: "Candolim Beach Road",
-    ratingScore: 8.7,
-    ratingText: "Excellent",
-    ratingCount: 5432,
-    price: 11000,
-    originalPrice: 14000,
-    meals: "Breakfast included",
-    amenities: ["Free WiFi", "Beach Access", "Pool", "Bar"],
-    roomType: "Superior Room",
-  },
-  // Kerala - Kochi, Munnar, Alleppey
-  {
-    id: 10,
-    name: "Brunton Boatyard",
-    city: "Kochi",
-    state: "Kerala",
-    image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=800&q=60",
-    distance: "2.5 km to City centre",
-    location: "Fort Kochi",
-    ratingScore: 9.3,
-    ratingText: "Exceptional",
-    ratingCount: 4567,
-    price: 16000,
-    originalPrice: 20000,
-    meals: "Breakfast included",
-    amenities: ["Free WiFi", "Harbour View", "Pool", "Restaurant"],
-    roomType: "Heritage Room",
-  },
-  {
-    id: 11,
-    name: "Spice Village",
-    city: "Munnar",
-    state: "Kerala",
-    image: "https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=800&q=60",
-    distance: "5.0 km to Town centre",
-    location: "Tea Gardens, Munnar",
-    ratingScore: 9.5,
-    ratingText: "Exceptional",
-    ratingCount: 3456,
-    price: 18000,
-    originalPrice: 22000,
-    meals: "All meals included",
-    amenities: ["Free WiFi", "Mountain View", "Spa", "Trekking"],
-    roomType: "Cottage Suite",
-  },
-  {
-    id: 12,
-    name: "Kumarakom Lake Resort",
-    city: "Alleppey",
-    state: "Kerala",
-    image: "https://images.unsplash.com/photo-1544644181-1484b3fdfc32?w=800&q=60",
-    distance: "1.0 km to Lake",
-    location: "Kumarakom, Alleppey",
-    ratingScore: 9.6,
-    ratingText: "Exceptional",
-    ratingCount: 5678,
-    price: 24000,
-    originalPrice: 30000,
-    meals: "Breakfast & Dinner",
-    amenities: ["Free WiFi", "Lake View", "Pool", "Ayurveda Spa"],
-    roomType: "Lake Villa",
-  },
-  // Karnataka - Bangalore, Mysore, Coorg
-  {
-    id: 13,
-    name: "The Leela Palace Bangalore",
-    city: "Bangalore",
-    state: "Karnataka",
-    image: "https://images.unsplash.com/photo-1600100397608-6a6d32b585f9?w=800&q=60",
-    distance: "6.0 km to City centre",
-    location: "Old Airport Road, Bangalore",
-    ratingScore: 9.4,
-    ratingText: "Exceptional",
-    ratingCount: 9876,
-    price: 22000,
-    originalPrice: 27500,
-    meals: "Breakfast included",
-    amenities: ["Free WiFi", "Pool", "Spa", "Golf Course"],
-    roomType: "Royal Premier Room",
-  },
-  {
-    id: 14,
-    name: "Radisson Blu Mysore",
-    city: "Mysore",
-    state: "Karnataka",
-    image: "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&q=60",
-    distance: "3.2 km to Palace",
-    location: "Lalitha Mahal Road, Mysore",
-    ratingScore: 8.8,
-    ratingText: "Excellent",
-    ratingCount: 4567,
-    price: 8500,
-    originalPrice: 10500,
-    meals: "Breakfast included",
-    amenities: ["Free WiFi", "Pool", "Gym", "Restaurant"],
-    roomType: "Superior Room",
-  },
-  {
-    id: 15,
-    name: "Tamara Coorg",
-    city: "Coorg",
-    state: "Karnataka",
-    image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=60",
-    distance: "8.0 km to Town",
-    location: "Napoklu, Coorg",
-    ratingScore: 9.7,
-    ratingText: "Exceptional",
-    ratingCount: 3234,
-    price: 35000,
-    originalPrice: 42000,
-    meals: "All meals included",
-    amenities: ["Free WiFi", "Valley View", "Spa", "Nature Trails"],
-    roomType: "Luxury Cottage",
-  },
-  // Tamil Nadu - Chennai, Ooty, Pondicherry
-  {
-    id: 16,
-    name: "ITC Grand Chola",
-    city: "Chennai",
-    state: "Tamil Nadu",
-    image: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=800&q=60",
-    distance: "4.5 km to City centre",
-    location: "Guindy, Chennai",
-    ratingScore: 9.5,
-    ratingText: "Exceptional",
-    ratingCount: 11234,
-    price: 19000,
-    originalPrice: 24000,
-    meals: "Breakfast included",
-    amenities: ["Free WiFi", "Pool", "Spa", "Multiple Restaurants"],
-    roomType: "Towers Room",
-  },
-  {
-    id: 17,
-    name: "Savoy - IHCL",
-    city: "Ooty",
-    state: "Tamil Nadu",
-    image: "https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=800&q=60",
-    distance: "2.0 km to Lake",
-    location: "Sylks Road, Ooty",
-    ratingScore: 9.2,
-    ratingText: "Excellent",
-    ratingCount: 4321,
-    price: 15000,
-    originalPrice: 18500,
-    meals: "Breakfast & Dinner",
-    amenities: ["Free WiFi", "Garden View", "Heritage", "Restaurant"],
-    roomType: "Heritage Suite",
-  },
-  {
-    id: 18,
-    name: "Palais de Mahe",
-    city: "Pondicherry",
-    state: "Tamil Nadu",
-    image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=60",
-    distance: "1.5 km to Beach",
-    location: "White Town, Pondicherry",
-    ratingScore: 9.0,
-    ratingText: "Excellent",
-    ratingCount: 3456,
-    price: 12000,
-    originalPrice: 15000,
-    meals: "Breakfast included",
-    amenities: ["Free WiFi", "Pool", "French Heritage", "Rooftop"],
-    roomType: "Heritage Room",
-  },
-];
 
 const currency = (v) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
 
-const useQuery = () => {
-  const [params] = useSearchParams();
-  return params;
+const parseKm = (distanceText) => {
+  if (!distanceText) return null;
+  const match = String(distanceText).match(/([\d.]+)\s*km/i);
+  return match ? Number(match[1]) : null;
 };
 
-const FilterChip = ({ children, active }) => (
-  <button className={`px-3 py-2 border dark:border-gray-700 rounded-full text-sm transition ${active
+const FilterChip = ({ children, active, onClick }) => (
+  <button 
+    onClick={onClick}
+    className={`px-3 py-2 border dark:border-gray-700 rounded-full text-sm transition font-medium ${active
       ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-500 dark:border-blue-500'
-      : 'bg-white dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-    }`}>
+      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+    }`}
+  >
     {children}
   </button>
 );
@@ -409,43 +101,92 @@ const ResultCard = ({ item, onAddToCart }) => {
   );
 };
 
-
 const SearchResults = () => {
-  const q = useQuery();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  
+  // States for sorting and filtering
+  const [sortBy, setSortBy] = useState("Recommended");
+  const [filterRating, setFilterRating] = useState(() => searchParams.get("rating8") === "true");
+  const [filterMeals, setFilterMeals] = useState(() => searchParams.get("meals") === "included");
+  const [filterNear, setFilterNear] = useState(() => searchParams.get("near") === "true");
+  const [filterPets, setFilterPets] = useState(() => searchParams.get("pets") === "true");
 
-  const initialValues = {
-    destination: q.get("destination") || "",
-    adults: q.get("adults"),
-    children: q.get("children"),
-    rooms: q.get("rooms"),
-    start: q.get("start"),
-    end: q.get("end"),
-    pets: q.get("pets"),
-  };
+  const setParam = useCallback((key, value) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (value === null || value === undefined || value === "") next.delete(key);
+      else next.set(key, String(value));
+      return next;
+    });
+  }, [setSearchParams]);
+
+  const initialValues = useMemo(() => ({
+    destination: searchParams.get("destination") || "",
+    adults: searchParams.get("adults"),
+    children: searchParams.get("children"),
+    rooms: searchParams.get("rooms"),
+    start: searchParams.get("start"),
+    end: searchParams.get("end"),
+    pets: searchParams.get("pets"),
+  }), [searchParams]);
 
   const destination = initialValues.destination.toLowerCase().trim();
 
-  // Filter results by city or state name - using mockHotels from data file
-  const filteredResults = destination
-    ? mockHotels.filter(
-      (hotel) =>
-        hotel.city.toLowerCase().includes(destination) ||
-        hotel.state.toLowerCase().includes(destination)
-    )
-    : mockHotels;
+  // Filter and Sort results
+  const results = useMemo(() => {
+    // 1. Filter by destination
+    let filtered = destination
+      ? mockHotels.filter(
+          (hotel) =>
+            hotel.city.toLowerCase().includes(destination) ||
+            hotel.state.toLowerCase().includes(destination)
+        )
+      : mockHotels;
+
+    // 2. Apply additional filters
+    if (filterRating) {
+      filtered = filtered.filter(hotel => hotel.ratingScore >= 8.0);
+    }
+
+    if (filterMeals) {
+      filtered = filtered.filter((hotel) => {
+        const m = String(hotel.meals || "").toLowerCase();
+        return m.includes("breakfast") || m.includes("meal") || m.includes("included");
+      });
+    }
+
+    if (filterNear) {
+      filtered = filtered.filter((hotel) => {
+        const km = parseKm(hotel.distance);
+        return km !== null ? km <= 3 : true;
+      });
+    }
+
+    if (filterPets) {
+      filtered = filtered.filter((hotel) => hotel.petFriendly === true);
+    }
+
+    // 3. Apply sorting
+    return [...filtered].sort((a, b) => {
+      if (sortBy === "Price: Low to High") return a.price - b.price;
+      if (sortBy === "Price: High to Low") return b.price - a.price;
+      if (sortBy === "Top Rated") return b.ratingScore - a.ratingScore;
+      if (sortBy === "Most Reviews") return b.ratingCount - a.ratingCount;
+      return 0; // Recommended
+    });
+  }, [destination, sortBy, filterRating, filterMeals, filterNear, filterPets]);
 
   const handleAddToCart = (hotel) => {
     if (!isAuthenticated) {
-      navigate('/login');
+      toast.error("Please login to book a hotel");
+      navigate("/login");
       return;
     }
 
-    // Add to recently viewed
     addToRecentlyViewed(hotel.id);
 
-    // Create booking details
     const bookingDetails = {
       hotel: hotel.name,
       roomType: hotel.roomType,
@@ -456,15 +197,12 @@ const SearchResults = () => {
       rooms: initialValues.rooms || "1",
     };
 
-    // Store in localStorage for now (can be upgraded to context/Redux later)
     const existingCart = JSON.parse(localStorage.getItem("hotelCart") || "[]");
     existingCart.push(bookingDetails);
     localStorage.setItem("hotelCart", JSON.stringify(existingCart));
-
-    // Dispatch custom event to update navbar cart count
+    
     window.dispatchEvent(new Event("cartUpdated"));
-
-    alert(`${hotel.name} added to cart!\n\nRoom: ${hotel.roomType}\nPrice: ₹${hotel.price.toLocaleString()} per night`);
+    toast.success(`${hotel.name} added to cart!`);
   };
 
   return (
@@ -473,65 +211,111 @@ const SearchResults = () => {
         <SearchBar initialValues={initialValues} />
       </div>
 
-      {filteredResults.length === 0 ? (
-        /* No city found state */
+      {results.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
           <div className="bg-gray-100 dark:bg-gray-800 rounded-full p-6 mb-6 transition-colors">
-            <svg
-              className="w-16 h-16 text-gray-400 dark:text-gray-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-              />
+            <svg className="w-16 h-16 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2 transition-colors">No city found</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md transition-colors">
-            We couldn't find any hotels in "{initialValues.destination}". Try searching for a different city or state.
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">No results found</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md">
+            We couldn't find any hotels matching your criteria. Try adjusting your filters or destination.
           </p>
-          <Link
-            to="/"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
+          <button 
+            onClick={() => {
+              setSortBy("Recommended");
+              setFilterRating(false);
+              setFilterMeals(false);
+              setFilterNear(false);
+              setFilterPets(false);
+              setParam("rating8", null);
+              setParam("meals", null);
+              setParam("near", null);
+              setParam("pets", initialValues.pets === "true" ? "true" : null);
+            }}
+            className="text-blue-600 dark:text-blue-400 font-semibold hover:underline"
           >
-            Back to Home
-          </Link>
+            Clear all filters
+          </button>
         </div>
       ) : (
         <>
           <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">Sort by</span>
-              <FilterChip active>Recommend...</FilterChip>
+              <FilterChip 
+                active={sortBy === "Recommended"} 
+                onClick={() => setSortBy("Recommended")}
+              >
+                Recommended
+              </FilterChip>
+              <FilterChip 
+                active={sortBy.startsWith("Price")} 
+                onClick={() => setSortBy(sortBy === "Price: Low to High" ? "Price: High to Low" : "Price: Low to High")}
+              >
+                Price {sortBy === "Price: Low to High" ? "↑" : sortBy === "Price: High to Low" ? "↓" : ""}
+              </FilterChip>
+              <FilterChip 
+                active={sortBy === "Top Rated"} 
+                onClick={() => setSortBy("Top Rated")}
+              >
+                Top Rated
+              </FilterChip>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <FilterChip>Filters</FilterChip>
-              <FilterChip>Price</FilterChip>
-              <FilterChip>Location</FilterChip>
-              <FilterChip>Rating: 8.0+</FilterChip>
-              <FilterChip>Near city centre</FilterChip>
-              <FilterChip>Meals included</FilterChip>
+              <span className="text-sm text-gray-600 dark:text-gray-400 font-medium ml-2">Filter</span>
+              <FilterChip 
+                active={filterRating} 
+                onClick={() => {
+                  const next = !filterRating;
+                  setFilterRating(next);
+                  setParam("rating8", next ? "true" : null);
+                }}
+              >
+                Rating: 8.0+
+              </FilterChip>
+              <FilterChip
+                active={filterNear}
+                onClick={() => {
+                  const next = !filterNear;
+                  setFilterNear(next);
+                  setParam("near", next ? "true" : null);
+                }}
+              >
+                Within 3 km
+              </FilterChip>
+              <FilterChip
+                active={filterMeals}
+                onClick={() => {
+                  const next = !filterMeals;
+                  setFilterMeals(next);
+                  setParam("meals", next ? "included" : null);
+                }}
+              >
+                Meals included
+              </FilterChip>
+              <FilterChip
+                active={filterPets}
+                onClick={() => {
+                  const next = !filterPets;
+                  setFilterPets(next);
+                  setParam("pets", next ? "true" : null);
+                }}
+              >
+                Pet-friendly
+              </FilterChip>
             </div>
           </div>
 
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 transition-colors">
-            We found <span className="font-bold dark:text-white">{filteredResults.length}</span> hotel{filteredResults.length !== 1 ? 's' : ''} in <span className="font-bold dark:text-white">{initialValues.destination || 'your search'}</span>
+            We found <span className="font-bold dark:text-white">{results.length}</span> hotel{results.length !== 1 ? 's' : ''} in <span className="font-bold dark:text-white">{initialValues.destination || 'your search'}</span>
           </p>
 
           <div className="space-y-4">
-            {filteredResults.map((r) => (
-              <ResultCard key={r.id} item={r} onAddToCart={handleAddToCart} />
+            {results.map((hotel) => (
+              <ResultCard key={hotel.id} item={hotel} onAddToCart={handleAddToCart} />
             ))}
           </div>
         </>

@@ -25,7 +25,7 @@ const LoginPage = () => {
                 // Role-based redirect
                 if (user.role === 'admin' || user.role === 'super_admin' || user.role === 'hotel_admin') {
                     toast.success(`Welcome back, ${user.name}!`);
-                    navigate('/admin');
+                    navigate('/admin/dashboard');
                 } else {
                     toast.success(`Welcome back, ${user.name}!`);
                     navigate('/');
@@ -33,7 +33,7 @@ const LoginPage = () => {
             } else {
                 toast.error(result.error || 'Login failed');
             }
-        } catch (error) {
+        } catch {
             toast.error('An unexpected error occurred');
         } finally {
             setLoading(false);

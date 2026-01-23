@@ -19,6 +19,7 @@ export const mockHotels = [
     meals: "Breakfast included",
     amenities: ["Free WiFi", "Pool", "Spa", "Restaurant"],
     roomType: "Deluxe Suite",
+    petFriendly: true,
   },
   {
     id: 2,
@@ -36,6 +37,7 @@ export const mockHotels = [
     meals: "All meals included",
     amenities: ["Free WiFi", "Lake View", "Spa", "Pool"],
     roomType: "Premier Lake View Room",
+    petFriendly: false,
   },
   {
     id: 3,
@@ -53,6 +55,7 @@ export const mockHotels = [
     meals: "Breakfast included",
     amenities: ["Free WiFi", "Pool", "Spa", "Garden"],
     roomType: "Heritage Suite",
+    petFriendly: true,
   },
   // Maharashtra - Mumbai, Pune, Lonavala
   {
@@ -71,6 +74,7 @@ export const mockHotels = [
     meals: "Breakfast included",
     amenities: ["Free WiFi", "Sea View", "Spa", "Restaurant"],
     roomType: "Ocean View Room",
+    petFriendly: false,
   },
   {
     id: 5,
@@ -88,6 +92,7 @@ export const mockHotels = [
     meals: "Breakfast & Dinner",
     amenities: ["Free WiFi", "Pool", "Gym", "Restaurant"],
     roomType: "Executive Room",
+    petFriendly: true,
   },
   {
     id: 6,
@@ -105,6 +110,7 @@ export const mockHotels = [
     meals: "All meals included",
     amenities: ["Tree House", "Nature View", "Private Deck", "Restaurant"],
     roomType: "Canopy Machan",
+    petFriendly: true,
   },
   // Goa - Panaji, Calangute, Candolim
   {
@@ -123,6 +129,7 @@ export const mockHotels = [
     meals: "Breakfast included",
     amenities: ["Free WiFi", "Beach Access", "Pool", "Spa"],
     roomType: "Sea View Room",
+    petFriendly: false,
   },
   {
     id: 8,
@@ -140,6 +147,7 @@ export const mockHotels = [
     meals: "Breakfast & Dinner",
     amenities: ["Free WiFi", "Beach Access", "Pool", "Spa"],
     roomType: "Premium Sea View",
+    petFriendly: true,
   },
   {
     id: 9,
@@ -157,6 +165,7 @@ export const mockHotels = [
     meals: "Breakfast included",
     amenities: ["Free WiFi", "Beach Access", "Pool", "Bar"],
     roomType: "Superior Room",
+    petFriendly: true,
   },
   // Kerala - Kochi, Munnar, Alleppey
   {
@@ -175,6 +184,7 @@ export const mockHotels = [
     meals: "Breakfast included",
     amenities: ["Free WiFi", "Harbour View", "Pool", "Restaurant"],
     roomType: "Heritage Room",
+    petFriendly: false,
   },
   {
     id: 11,
@@ -192,6 +202,7 @@ export const mockHotels = [
     meals: "All meals included",
     amenities: ["Free WiFi", "Mountain View", "Spa", "Trekking"],
     roomType: "Cottage Suite",
+    petFriendly: true,
   },
   {
     id: 12,
@@ -209,6 +220,7 @@ export const mockHotels = [
     meals: "Breakfast & Dinner",
     amenities: ["Free WiFi", "Lake View", "Pool", "Ayurveda Spa"],
     roomType: "Lake Villa",
+    petFriendly: false,
   },
   // Karnataka - Bangalore, Mysore, Coorg
   {
@@ -227,6 +239,7 @@ export const mockHotels = [
     meals: "Breakfast included",
     amenities: ["Free WiFi", "Pool", "Spa", "Golf Course"],
     roomType: "Royal Premier Room",
+    petFriendly: true,
   },
   {
     id: 14,
@@ -244,6 +257,7 @@ export const mockHotels = [
     meals: "Breakfast included",
     amenities: ["Free WiFi", "Pool", "Gym", "Restaurant"],
     roomType: "Superior Room",
+    petFriendly: false,
   },
   {
     id: 15,
@@ -261,6 +275,7 @@ export const mockHotels = [
     meals: "All meals included",
     amenities: ["Free WiFi", "Valley View", "Spa", "Nature Trails"],
     roomType: "Luxury Cottage",
+    petFriendly: true,
   },
   // Tamil Nadu - Chennai, Ooty, Pondicherry
   {
@@ -279,6 +294,7 @@ export const mockHotels = [
     meals: "Breakfast included",
     amenities: ["Free WiFi", "Pool", "Spa", "Multiple Restaurants"],
     roomType: "Towers Room",
+    petFriendly: false,
   },
   {
     id: 17,
@@ -296,6 +312,7 @@ export const mockHotels = [
     meals: "Breakfast & Dinner",
     amenities: ["Free WiFi", "Garden View", "Heritage", "Restaurant"],
     roomType: "Heritage Suite",
+    petFriendly: true,
   },
   {
     id: 18,
@@ -313,6 +330,7 @@ export const mockHotels = [
     meals: "Breakfast included",
     amenities: ["Free WiFi", "Pool", "French Heritage", "Rooftop"],
     roomType: "Heritage Room",
+    petFriendly: false,
   },
 ];
 
