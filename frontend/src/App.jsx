@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import './App.css';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -59,6 +60,34 @@ function App() {
         <Footer />
       </div>
     </HotelProvider>
+=======
+import { Routes, Route } from 'react-router-dom';
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import Favorites from "./pages/Favorites";
+import Bookings from "./pages/Bookings";
+import RecentlyViewed from "./pages/RecentlyViewed";
+import Help from "./pages/Help";
+import Hoteliers from "./pages/Hoteliers";
+import Footer from "./components/Footer";
+
+function App() {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-grow">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/bookings" element={<Bookings />} />
+          <Route path="/recent" element={<RecentlyViewed />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/hoteliers" element={<Hoteliers />} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
+>>>>>>> Stashed changes
   );
 }
 

@@ -14,9 +14,12 @@ import {
 } from "@heroicons/react/24/outline";
 
 const MenuDropdown = ({ open, onClose }) => {
+<<<<<<< Updated upstream
   const { isAuthenticated, logout, user } = useAuth();
   const navigate = useNavigate();
 
+=======
+>>>>>>> Stashed changes
   if (!open) return null;
 
   const handleLogout = () => {
@@ -110,12 +113,16 @@ const MenuDropdown = ({ open, onClose }) => {
 
       <MenuSection title="Support">
         <MenuItem icon={QuestionMarkCircleIcon} label="Help and support" to="/help" onClick={onClose} />
+<<<<<<< Updated upstream
         <MenuItem
           icon={BuildingOfficeIcon}
           label="List your property"
           to="/hoteliers"
           onClick={onClose}
         />
+=======
+        <MenuItem icon={BuildingOfficeIcon} label="For hoteliers" to="/hoteliers" onClick={onClose} />
+>>>>>>> Stashed changes
       </MenuSection>
 
     </div>

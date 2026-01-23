@@ -8,7 +8,12 @@ import {
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import MenuDropdown from "./MenuDropdown";
+<<<<<<< Updated upstream
 import { useAuth } from "../context/AuthContext";
+=======
+import { Link } from "react-router-dom";
+
+>>>>>>> Stashed changes
 
 const Navbar = () => {
   const [openMenu, setOpenMenu] = useState(false);
@@ -68,6 +73,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto flex items-center justify-between h-20 px-4 md:px-8">
 
         {/* Logo */}
+<<<<<<< Updated upstream
         <Link to="/" className="flex items-center h-full">
           <img
             src={logo}
@@ -75,6 +81,18 @@ const Navbar = () => {
             className="h-12 object-contain cursor-pointer dark:brightness-110"
           />
         </Link>
+=======
+        <div className="flex items-center h-full">
+            {/* Logo */}
+            <Link to="/" className="flex items-center h-full">
+              <img
+                src={logo}
+                alt="stays.in"
+                className="h-12 object-contain cursor-pointer"
+              />
+            </Link>
+        </div>
+>>>>>>> Stashed changes
 
         {/* Right Controls */}
         <div className="flex items-center gap-4">
@@ -112,6 +130,7 @@ const Navbar = () => {
             </Link>
           )}
 
+<<<<<<< Updated upstream
           {/* User Avatar / Sign In Button */}
           {isAuthenticated ? (
             <div ref={menuRef} className="relative">
@@ -155,6 +174,11 @@ const Navbar = () => {
               <MenuDropdown open={openMenu} onClose={() => setOpenMenu(false)} />
             </div>
           )}
+=======
+            {/* Dropdown */}
+            <MenuDropdown open={openMenu} onClose={() => setOpenMenu(false)} />
+          </div>
+>>>>>>> Stashed changes
 
         </div>
       </div>
