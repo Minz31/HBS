@@ -8,27 +8,37 @@ import {
   XMarkIcon,
   CheckCircleIcon,
   ClockIcon,
-  PencilIcon
+  PencilIcon,
+  StarIcon
 } from "@heroicons/react/24/outline";
-import { FaTicketAlt } from "react-icons/fa";
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+import { FaTicketAlt, FaStar } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
+import { useReviews } from "../context/ReviewsContext";
 import AccountLayout from "../components/AccountLayout";
 
 const currency = (v) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
 
 const Bookings = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const { addReview } = useReviews();
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [filter, setFilter] = useState('all');
   const [editForm, setEditForm] = useState({
     checkIn: '',
     checkOut: '',
     rooms: 1
+  });
+  const [reviewForm, setReviewForm] = useState({
+    rating: 5,
+    title: '',
+    comment: ''
   });
 
   // Load bookings from localStorage
@@ -45,28 +55,50 @@ const Bookings = () => {
             hotel: "Taj Lands End",
             city: "Mumbai",
             roomType: "Ocean View Room",
-            checkIn: "2026-02-15",
-            checkOut: "2026-02-18",
+            checkIn: "2026-01-10",
+            checkOut: "2026-01-13",
             guests: 2,
             rooms: 1,
             price: 55500,
-            status: "confirmed",
-            bookingDate: "2026-01-20",
+            status: "completed",
+            bookingDate: "2026-01-05",
             image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=60",
+            reviewed: false
           },
           {
             id: 2,
             hotel: "The Oberoi Udaivilas",
             city: "Udaipur",
             roomType: "Premier Lake View Room",
-            checkIn: "2026-03-10",
-            checkOut: "2026-03-14",
+            checkIn: "2026-02-10",
+            checkOut: "2026-02-14",
             guests: 2,
             rooms: 1,
             price: 180000,
-            status: "pending",
+            status: "confirmed",
             bookingDate: "2026-01-22",
             image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=60",
+            reviewed: false
+          },
+          {
+            id: 3,
+            hotel: "ITC Grand Chola",
+            city: "Chennai",
+            roomType: "Grand Club Room",
+            checkIn: "2026-01-05",
+            checkOut: "2026-01-08",
+            guests: 2,
+            rooms: 1,
+            price: 42000,
+            status: "completed",
+            bookingDate: "2025-12-28",
+            image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=60",
+            reviewed: true,
+            review: {
+              rating: 5,
+              title: "Amazing stay!",
+              comment: "Exceptional service and beautiful property."
+            }
           },
         ];
         setBookings(mockBookings);
@@ -97,6 +129,17 @@ const Bookings = () => {
     setShowEditModal(true);
   };
 
+  // Open review modal
+  const openReviewModal = (booking) => {
+    setSelectedBooking(booking);
+    setReviewForm({
+      rating: 5,
+      title: '',
+      comment: ''
+    });
+    setShowReviewModal(true);
+  };
+
   // Update booking
   const handleUpdateBooking = () => {
     const updated = bookings.map(b => 
@@ -108,6 +151,46 @@ const Bookings = () => {
     localStorage.setItem("bookings", JSON.stringify(updated));
     setShowEditModal(false);
     setSelectedBooking(null);
+  };
+
+  // Submit review
+  const handleSubmitReview = () => {
+    if (!reviewForm.title.trim() || !reviewForm.comment.trim()) {
+      alert('Please fill in all review fields');
+      return;
+    }
+    
+    // Save to global reviews context (contributes to hotel rating)
+    addReview({
+      hotelId: selectedBooking.hotelId || selectedBooking.id,
+      hotelName: selectedBooking.hotel,
+      userId: user?.email || 'guest',
+      userName: user?.name || 'Guest User',
+      rating: reviewForm.rating,
+      title: reviewForm.title,
+      comment: reviewForm.comment
+    });
+    
+    // Mark booking as reviewed
+    const updated = bookings.map(b => 
+      b.id === selectedBooking.id 
+        ? { 
+            ...b, 
+            reviewed: true, 
+            review: {
+              rating: reviewForm.rating,
+              title: reviewForm.title,
+              comment: reviewForm.comment,
+              date: new Date().toISOString().split('T')[0]
+            }
+          } 
+        : b
+    );
+    setBookings(updated);
+    localStorage.setItem("bookings", JSON.stringify(updated));
+    setShowReviewModal(false);
+    setSelectedBooking(null);
+    alert('Thank you for your review! Your rating contributes to the hotel\'s overall score.');
   };
 
   // Filter bookings
@@ -129,6 +212,28 @@ const Bookings = () => {
       default:
         return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
     }
+  };
+
+  // Render star rating
+  const renderStars = (rating, interactive = false, onRate = null) => {
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => interactive && onRate && onRate(star)}
+            className={`${interactive ? 'cursor-pointer hover:scale-110 transition-transform' : 'cursor-default'}`}
+          >
+            {star <= rating ? (
+              <StarIconSolid className="h-6 w-6 text-yellow-400" />
+            ) : (
+              <StarIcon className="h-6 w-6 text-gray-300" />
+            )}
+          </button>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -179,6 +284,7 @@ const Bookings = () => {
               { key: 'all', label: 'All' },
               { key: 'confirmed', label: 'Confirmed' },
               { key: 'pending', label: 'Pending' },
+              { key: 'completed', label: 'Completed' },
               { key: 'cancelled', label: 'Cancelled' },
             ].map((tab) => (
               <button
@@ -271,28 +377,63 @@ const Bookings = () => {
                         </div>
                       </div>
 
-                      {/* Actions - Only for confirmed/pending bookings */}
-                      {(booking.status === 'confirmed' || booking.status === 'pending') && (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => openEditModal(booking)}
-                            className="flex items-center gap-2 px-4 py-2 border border-blue-400 text-blue-600 dark:text-blue-400 rounded-xl font-semibold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                          >
-                            <PencilIcon className="h-4 w-4" />
-                            Update Booking
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedBooking(booking);
-                              setShowCancelModal(true);
-                            }}
-                            className="flex items-center gap-2 px-4 py-2 border border-red-400 text-red-600 dark:text-red-400 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                          >
-                            <XMarkIcon className="h-4 w-4" />
-                            Cancel Booking
-                          </button>
+                      {/* Show existing review if available */}
+                      {booking.reviewed && booking.review && (
+                        <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="flex gap-0.5">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <FaStar
+                                  key={star}
+                                  className={`h-4 w-4 ${star <= booking.review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-sm font-semibold text-green-700 dark:text-green-400">
+                              Your Review
+                            </span>
+                          </div>
+                          <p className="font-semibold text-gray-900 dark:text-white text-sm">{booking.review.title}</p>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">{booking.review.comment}</p>
                         </div>
                       )}
+
+                      {/* Actions */}
+                      <div className="flex gap-2 flex-wrap">
+                        {/* Update/Cancel - Only for confirmed/pending bookings */}
+                        {(booking.status === 'confirmed' || booking.status === 'pending') && (
+                          <>
+                            <button
+                              onClick={() => openEditModal(booking)}
+                              className="flex items-center gap-2 px-4 py-2 border border-blue-400 text-blue-600 dark:text-blue-400 rounded-xl font-semibold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                              Update Booking
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedBooking(booking);
+                                setShowCancelModal(true);
+                              }}
+                              className="flex items-center gap-2 px-4 py-2 border border-red-400 text-red-600 dark:text-red-400 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            >
+                              <XMarkIcon className="h-4 w-4" />
+                              Cancel Booking
+                            </button>
+                          </>
+                        )}
+
+                        {/* Write Review - Only for completed bookings that haven't been reviewed */}
+                        {booking.status === 'completed' && !booking.reviewed && (
+                          <button
+                            onClick={() => openReviewModal(booking)}
+                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-xl font-semibold hover:from-yellow-500 hover:to-yellow-600 transition-all shadow-md"
+                          >
+                            <FaStar className="h-4 w-4" />
+                            Write a Review
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -389,8 +530,82 @@ const Bookings = () => {
           </div>
         </div>
       )}
+
+      {/* Review Modal - Only for completed bookings */}
+      {showReviewModal && selectedBooking && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-full">
+                <FaStar className="h-6 w-6 text-yellow-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold dark:text-white">Write a Review</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{selectedBooking.hotel}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              {/* Star Rating */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Your Rating
+                </label>
+                <div className="flex gap-2">
+                  {renderStars(reviewForm.rating, true, (rating) => setReviewForm({...reviewForm, rating}))}
+                  <span className="ml-2 text-lg font-bold text-yellow-500">{reviewForm.rating}/5</span>
+                </div>
+              </div>
+
+              {/* Review Title */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Review Title *
+                </label>
+                <input
+                  type="text"
+                  value={reviewForm.title}
+                  onChange={(e) => setReviewForm({...reviewForm, title: e.target.value})}
+                  placeholder="Summarize your experience"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              {/* Review Comment */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Your Review *
+                </label>
+                <textarea
+                  rows="4"
+                  value={reviewForm.comment}
+                  onChange={(e) => setReviewForm({...reviewForm, comment: e.target.value})}
+                  placeholder="Tell us about your stay. What did you like? What could be improved?"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowReviewModal(false)}
+                className="flex-1 py-3 border border-gray-300 dark:border-gray-600 rounded-xl font-semibold dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitReview}
+                className="flex-1 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-xl font-bold hover:from-yellow-500 hover:to-yellow-600"
+              >
+                Submit Review
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AccountLayout>
   );
 };
 
 export default Bookings;
+
