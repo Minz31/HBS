@@ -45,10 +45,11 @@ const HotelProfileManagement = () => {
     ]);
 
     const [images, setImages] = useState([
-        { id: 1, url: '/hotel-main.jpg', type: 'main' },
-        { id: 2, url: '/hotel-lobby.jpg', type: 'gallery' },
-        { id: 3, url: '/hotel-pool.jpg', type: 'gallery' },
-        { id: 4, url: '/hotel-room.jpg', type: 'gallery' },
+        { id: 1, url: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=60', type: 'main' },
+        { id: 2, url: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&q=60', type: 'gallery' },
+        { id: 3, url: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=60', type: 'gallery' },
+        { id: 4, url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=60', type: 'room' },
+        { id: 5, url: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&q=60', type: 'room' },
     ]);
 
     const [activeTab, setActiveTab] = useState('basic');
@@ -63,9 +64,56 @@ const HotelProfileManagement = () => {
         ));
     };
 
+    // Image upload handler
+    const handleImageUpload = (files) => {
+        if (!files || files.length === 0) return;
+        
+        files.forEach(file => {
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`File ${file.name} is too large. Max 5MB allowed.`);
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const newImage = {
+                    id: Date.now() + Math.random(),
+                    url: e.target.result,
+                    type: 'gallery',
+                    name: file.name
+                };
+                setImages(prev => [...prev, newImage]);
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
+    // Delete image handler
+    const handleDeleteImage = (imageId) => {
+        if (window.confirm('Are you sure you want to delete this image?')) {
+            setImages(prev => prev.filter(img => img.id !== imageId));
+        }
+    };
+
+    // Set main image handler
+    const handleSetMainImage = (imageId) => {
+        setImages(prev => prev.map(img => ({
+            ...img,
+            type: img.id === imageId ? 'main' : (img.type === 'main' ? 'gallery' : img.type)
+        })));
+    };
+
+    // Change image type handler
+    const handleChangeImageType = (imageId, newType) => {
+        setImages(prev => prev.map(img => 
+            img.id === imageId ? { ...img, type: newType } : img
+        ));
+    };
+
     const handleSave = () => {
         console.log('Saving hotel profile:', hotelData);
-        // API call here
+        console.log('Images:', images);
+        alert('Hotel profile saved successfully!');
     };
 
     return (
@@ -332,30 +380,162 @@ const HotelProfileManagement = () => {
                         {/* Images Tab */}
                         {activeTab === 'images' && (
                             <div className="space-y-6">
-                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Hotel Images</h2>
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Hotel Images</h2>
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                                        {images.length} image{images.length !== 1 ? 's' : ''} uploaded
+                                    </span>
+                                </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {images.map((image) => (
-                                        <div key={image.id} className="relative group">
-                                            <div className="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 dark:from-slate-700 dark:to-slate-600 rounded-xl flex items-center justify-center overflow-hidden">
-                                                <FaImage className="h-16 w-16 text-gray-400" />
-                                            </div>
-                                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                                <button className="px-4 py-2 bg-white rounded-lg font-semibold mr-2">Edit</button>
-                                                <button className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold">Delete</button>
-                                            </div>
-                                            {image.type === 'main' && (
-                                                <span className="absolute top-2 left-2 px-3 py-1 bg-indigo-600 text-white text-xs font-semibold rounded-full">
-                                                    Main Photo
+                                {/* Upload Zone */}
+                                <div 
+                                    className="border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-2xl p-8 text-center hover:border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/10 transition-all cursor-pointer"
+                                    onClick={() => document.getElementById('hotel-image-upload').click()}
+                                    onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-yellow-500', 'bg-yellow-50'); }}
+                                    onDragLeave={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-yellow-500', 'bg-yellow-50'); }}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        e.currentTarget.classList.remove('border-yellow-500', 'bg-yellow-50');
+                                        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                                        handleImageUpload(files);
+                                    }}
+                                >
+                                    <input
+                                        id="hotel-image-upload"
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={(e) => handleImageUpload(Array.from(e.target.files))}
+                                        className="hidden"
+                                    />
+                                    <FaImage className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                        Drop images here or click to upload
+                                    </h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        Supports JPG, PNG, WebP • Max 5MB per image
+                                    </p>
+                                </div>
+
+                                {/* Image Categories */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {/* Main Photo Section */}
+                                    <div className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl p-6 border-2 border-yellow-200 dark:border-yellow-800">
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                            <FaStar className="text-yellow-500" />
+                                            Main Photo
+                                        </h3>
+                                        {images.find(img => img.type === 'main') ? (
+                                            <div className="relative aspect-video rounded-xl overflow-hidden">
+                                                <img 
+                                                    src={images.find(img => img.type === 'main').url} 
+                                                    alt="Main hotel photo"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                <div className="absolute inset-0 bg-black/0 hover:bg-black/50 transition-all flex items-center justify-center opacity-0 hover:opacity-100">
+                                                    <button 
+                                                        onClick={() => handleDeleteImage(images.find(img => img.type === 'main').id)}
+                                                        className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                                <span className="absolute top-2 left-2 px-3 py-1 bg-yellow-500 text-white text-xs font-bold rounded-full">
+                                                    ⭐ Main Photo
                                                 </span>
-                                            )}
-                                        </div>
-                                    ))}
+                                            </div>
+                                        ) : (
+                                            <div className="aspect-video rounded-xl bg-gray-200 dark:bg-slate-700 flex items-center justify-center">
+                                                <p className="text-gray-500 dark:text-gray-400">No main photo set</p>
+                                            </div>
+                                        )}
+                                    </div>
 
-                                    <button className="aspect-video border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all">
-                                        <FaImage className="h-12 w-12 text-gray-400 mb-2" />
-                                        <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Add Image</span>
-                                    </button>
+                                    {/* Room Photos Section */}
+                                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border-2 border-blue-200 dark:border-blue-800">
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                            <FaBuilding className="text-blue-500" />
+                                            Room Photos ({images.filter(img => img.type === 'room').length})
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {images.filter(img => img.type === 'room').slice(0, 4).map((image) => (
+                                                <div key={image.id} className="relative aspect-video rounded-lg overflow-hidden group">
+                                                    <img src={image.url} alt="Room" className="w-full h-full object-cover" />
+                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                                                        <button 
+                                                            onClick={() => handleSetMainImage(image.id)}
+                                                            className="p-2 bg-yellow-500 text-white rounded-lg text-xs"
+                                                            title="Set as main"
+                                                        >
+                                                            ⭐
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleDeleteImage(image.id)}
+                                                            className="p-2 bg-red-600 text-white rounded-lg text-xs"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Gallery Section */}
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                                        All Gallery Images ({images.filter(img => img.type === 'gallery').length})
+                                    </h3>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        {images.filter(img => img.type === 'gallery').map((image) => (
+                                            <div key={image.id} className="relative aspect-video rounded-xl overflow-hidden group">
+                                                <img src={image.url} alt="Gallery" className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                                                    <button 
+                                                        onClick={() => handleSetMainImage(image.id)}
+                                                        className="p-2 bg-yellow-500 text-white rounded-lg text-sm font-semibold"
+                                                        title="Set as main photo"
+                                                    >
+                                                        ⭐ Main
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleChangeImageType(image.id, 'room')}
+                                                        className="p-2 bg-blue-500 text-white rounded-lg text-sm font-semibold"
+                                                        title="Mark as room photo"
+                                                    >
+                                                        🛏️ Room
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDeleteImage(image.id)}
+                                                        className="p-2 bg-red-600 text-white rounded-lg text-sm font-semibold"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        
+                                        {/* Add More Button */}
+                                        <button 
+                                            onClick={() => document.getElementById('hotel-image-upload').click()}
+                                            className="aspect-video border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center hover:border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all"
+                                        >
+                                            <span className="text-3xl mb-2">➕</span>
+                                            <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Add More</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Tips */}
+                                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+                                    <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">📸 Photo Tips</h4>
+                                    <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
+                                        <li>• Upload high-quality images (recommended: 1920x1080 or higher)</li>
+                                        <li>• Include photos of rooms, lobby, amenities, and exterior</li>
+                                        <li>• Set an attractive main photo - it appears in search results</li>
+                                        <li>• Hotels with 10+ photos get 2x more bookings!</li>
+                                    </ul>
                                 </div>
                             </div>
                         )}
