@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 import './App.css';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -13,8 +12,10 @@ import Help from './pages/Help';
 import Hoteliers from './pages/Hoteliers';
 import SearchResults from './pages/SearchResults';
 import Cart from './pages/Cart';
+import Profile from './pages/Profile';
+import Checkout from './pages/Checkout';
 
-// Admin Pages
+// Owner Pages (Hotel Owners)
 import HotelierDashboard from './pages/admin/HotelierDashboard';
 import HotelProfileManagement from './pages/admin/HotelProfileManagement';
 import RoomManagement from './pages/admin/RoomManagement';
@@ -23,6 +24,15 @@ import PricingAvailability from './pages/admin/PricingAvailability';
 import ReviewsManagement from './pages/admin/ReviewsManagement';
 import RevenueReports from './pages/admin/RevenueReports';
 import HotelierSettings from './pages/admin/HotelierSettings';
+import RoomTypeManagement from './pages/admin/RoomTypeManagement';
+import HotelOwnerCRUD from './pages/admin/HotelOwnerCRUD';
+
+// Admin Pages (Site Admins)
+import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
+import HotelApprovals from './pages/admin/HotelApprovals';
+import CustomerManagement from './pages/admin/CustomerManagement';
+import LocationManagement from './pages/admin/LocationManagement';
+import SystemAnalytics from './pages/admin/SystemAnalytics';
 
 // Context Providers
 import { HotelProvider } from './context/HotelContext';
@@ -45,51 +55,34 @@ function App() {
             <Route path="/hoteliers" element={<Hoteliers />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/checkout" element={<Checkout />} />
 
-            {/* Admin/Hotelier Pages */}
-            <Route path="/admin/dashboard" element={<HotelierDashboard />} />
-            <Route path="/admin/hotel-profile" element={<HotelProfileManagement />} />
-            <Route path="/admin/rooms" element={<RoomManagement />} />
-            <Route path="/admin/bookings" element={<BookingManagement />} />
-            <Route path="/admin/pricing" element={<PricingAvailability />} />
-            <Route path="/admin/reviews" element={<ReviewsManagement />} />
-            <Route path="/admin/revenue" element={<RevenueReports />} />
-            <Route path="/admin/settings" element={<HotelierSettings />} />
+            {/* Owner Pages (Hotel Owners) */}
+            <Route path="/owner/dashboard" element={<HotelierDashboard />} />
+            <Route path="/owner/hotel-profile" element={<HotelProfileManagement />} />
+            <Route path="/owner/rooms" element={<RoomManagement />} />
+            <Route path="/owner/bookings" element={<BookingManagement />} />
+            <Route path="/owner/pricing" element={<PricingAvailability />} />
+            <Route path="/owner/reviews" element={<ReviewsManagement />} />
+            <Route path="/owner/revenue" element={<RevenueReports />} />
+            <Route path="/owner/settings" element={<HotelierSettings />} />
+            <Route path="/owner/my-hotels" element={<HotelOwnerCRUD />} />
+            <Route path="/owner/room-types" element={<RoomTypeManagement />} />
+
+            {/* Admin Pages (Site Admins) */}
+            <Route path="/admin/dashboard" element={<SuperAdminDashboard />} />
+            <Route path="/admin/approvals" element={<HotelApprovals />} />
+            <Route path="/admin/customers" element={<CustomerManagement />} />
+            <Route path="/admin/hotels" element={<HotelOwnerCRUD />} />
+            <Route path="/admin/locations" element={<LocationManagement />} />
+            <Route path="/admin/analytics" element={<SystemAnalytics />} />
           </Routes>
         </main>
         <Footer />
       </div>
     </HotelProvider>
-=======
-import { Routes, Route } from 'react-router-dom';
-import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
-import Favorites from "./pages/Favorites";
-import Bookings from "./pages/Bookings";
-import RecentlyViewed from "./pages/RecentlyViewed";
-import Help from "./pages/Help";
-import Hoteliers from "./pages/Hoteliers";
-import Footer from "./components/Footer";
-
-function App() {
-  return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/favorites" element={<Favorites />} />
-          <Route path="/bookings" element={<Bookings />} />
-          <Route path="/recent" element={<RecentlyViewed />} />
-          <Route path="/help" element={<Help />} />
-          <Route path="/hoteliers" element={<Hoteliers />} />
-        </Routes>
-      </main>
-      <Footer />
-    </div>
->>>>>>> Stashed changes
   );
 }
 
 export default App;
-

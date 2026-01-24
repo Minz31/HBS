@@ -90,12 +90,7 @@ const Hoteliers = () => {
     },
   ];
 
-  const stats = [
-    { value: '50,000+', label: 'Partner Hotels' },
-    { value: '10M+', label: 'Monthly Bookings' },
-    { value: '150+', label: 'Countries' },
-    { value: '98%', label: 'Partner Satisfaction' },
-  ];
+
 
   const handleAmenityToggle = (amenity) => {
     setFormData(prev => ({
@@ -170,17 +165,7 @@ const Hoteliers = () => {
               </a>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-              {stats.map((stat, index) => (
-                <div key={index} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
-                  <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    {stat.value}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{stat.label}</p>
-                </div>
-              ))}
-            </div>
+
           </div>
         </div>
       </div>
@@ -194,7 +179,7 @@ const Hoteliers = () => {
                 Already a Partner?
               </h2>
               <p className="text-blue-100">
-                Access your admin dashboard to manage your properties
+                Access your  dashboard to manage your properties
               </p>
             </div>
             <Link

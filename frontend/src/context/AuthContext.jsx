@@ -19,6 +19,14 @@ const HARDCODED_USERS = [
     name: 'Admin User',
     role: 'admin',
     avatar: null
+  },
+  {
+    id: 3,
+    email: 'owner@stays.in',
+    password: 'owner123',
+    name: 'Hotel Owner',
+    role: 'owner',
+    avatar: null
   }
 ];
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import AdminLayout from '../../layouts/AdminLayout';
+import OwnerLayout from '../../layouts/OwnerLayout';
 import {
     FaChevronLeft,
     FaChevronRight,
@@ -117,7 +117,7 @@ const PricingAvailability = () => {
 
 
     return (
-        <AdminLayout>
+        <OwnerLayout>
             <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-950">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Header */}
@@ -364,7 +364,7 @@ const PricingAvailability = () => {
                     )}
                 </div>
             </div>
-        </AdminLayout>
+        </OwnerLayout>
     );
 };
 

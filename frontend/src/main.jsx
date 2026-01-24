@@ -9,7 +9,6 @@ import '@fontsource/roboto/700.css';
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { BrowserRouter } from 'react-router-dom';
-<<<<<<< Updated upstream
 import { AuthProvider } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 
@@ -42,13 +41,4 @@ createRoot(document.getElementById('root')).render(
       />
     </AuthProvider>
   </BrowserRouter>
-=======
-
-
-
-createRoot(document.getElementById('root')).render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>,
->>>>>>> Stashed changes
 )

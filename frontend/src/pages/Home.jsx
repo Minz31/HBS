@@ -1,12 +1,8 @@
 import SearchBar from "../components/SearchBar";
 import { FaHotel, FaCreditCard, FaStar } from 'react-icons/fa';
-<<<<<<< Updated upstream
 import { useAuth } from '../context/AuthContext';
 import PopularSearches from "../components/PopularSearches";
 import RecentlyViewedHotels from "../components/RecentlyViewedHotels";
-=======
-
->>>>>>> Stashed changes
 
 function Home() {
   const { isAuthenticated, user } = useAuth();

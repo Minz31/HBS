@@ -14,12 +14,9 @@ import {
 } from "@heroicons/react/24/outline";
 
 const MenuDropdown = ({ open, onClose }) => {
-<<<<<<< Updated upstream
   const { isAuthenticated, logout, user } = useAuth();
   const navigate = useNavigate();
 
-=======
->>>>>>> Stashed changes
   if (!open) return null;
 
   const handleLogout = () => {
@@ -31,20 +28,20 @@ const MenuDropdown = ({ open, onClose }) => {
   // Menu for logged-in users (Trivago style)
   if (isAuthenticated) {
     return (
-      <div className="absolute right-0 mt-3 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border dark:border-gray-700 z-50 py-4 overflow-hidden transition-colors">
+      <div className="absolute right-0 top-full mt-3 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-gray-200 dark:border-gray-600 z-[100] py-4 max-h-[calc(100vh-120px)] overflow-y-auto">
 
         {/* Account Section */}
         <MenuSection title="Account">
           <MenuItem
             icon={UserIcon}
             label="Personal info"
-            to="/account/personal"
+            to="/profile"
             onClick={onClose}
           />
           <MenuItem
             icon={ShieldCheckIcon}
             label="Account security"
-            to="/account/security"
+            to="/profile"
             onClick={onClose}
           />
         </MenuSection>
@@ -79,12 +76,31 @@ const MenuDropdown = ({ open, onClose }) => {
             to="/help"
             onClick={onClose}
           />
-          <MenuItem
-            icon={BuildingOfficeIcon}
-            label={user?.role === 'admin' ? "Admin Dashboard" : "List your property"}
-            to={user?.role === 'admin' ? "/admin/dashboard" : "/hoteliers"}
-            onClick={onClose}
-          />
+        {/* Role-based dashboard links */}
+          {user?.role === 'admin' && (
+            <MenuItem
+              icon={BuildingOfficeIcon}
+              label="Admin Panel"
+              to="/admin/dashboard"
+              onClick={onClose}
+            />
+          )}
+          {user?.role === 'owner' && (
+            <MenuItem
+              icon={BuildingOfficeIcon}
+              label="Owner Dashboard"
+              to="/owner/dashboard"
+              onClick={onClose}
+            />
+          )}
+          {user?.role === 'user' && (
+            <MenuItem
+              icon={BuildingOfficeIcon}
+              label="Become a Host"
+              to="/hoteliers"
+              onClick={onClose}
+            />
+          )}
         </MenuSection>
 
         {/* Logout - Separate with border */}
@@ -103,7 +119,7 @@ const MenuDropdown = ({ open, onClose }) => {
 
   // Menu for non-logged-in users (original)
   return (
-    <div className="absolute right-0 mt-3 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border dark:border-gray-700 z-50 p-4 transition-colors">
+    <div className="absolute right-0 top-full mt-3 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-gray-200 dark:border-gray-600 z-[100] py-4 max-h-[calc(100vh-120px)] overflow-y-auto">
 
       <MenuSection title="Trips">
         <MenuItem icon={HeartIcon} label="Favorites" to="/favorites" onClick={onClose} />
@@ -113,16 +129,12 @@ const MenuDropdown = ({ open, onClose }) => {
 
       <MenuSection title="Support">
         <MenuItem icon={QuestionMarkCircleIcon} label="Help and support" to="/help" onClick={onClose} />
-<<<<<<< Updated upstream
         <MenuItem
           icon={BuildingOfficeIcon}
-          label="List your property"
+          label="For hoteliers"
           to="/hoteliers"
           onClick={onClose}
         />
-=======
-        <MenuItem icon={BuildingOfficeIcon} label="For hoteliers" to="/hoteliers" onClick={onClose} />
->>>>>>> Stashed changes
       </MenuSection>
 
     </div>

@@ -1,15 +1,38 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { TrashIcon, ShoppingCartIcon } from "@heroicons/react/24/outline";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { 
+  TrashIcon, 
+  ShoppingCartIcon, 
+  PencilIcon,
+  MinusIcon,
+  PlusIcon,
+  CalendarIcon,
+  UserGroupIcon,
+  XMarkIcon,
+  CheckIcon
+} from "@heroicons/react/24/outline";
 
 const currency = (v) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
 
 const Cart = () => {
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState(() => {
     return JSON.parse(localStorage.getItem("hotelCart") || "[]");
   });
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editForm, setEditForm] = useState({});
 
+  // Sync with localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setCartItems(JSON.parse(localStorage.getItem("hotelCart") || "[]"));
+    };
+    window.addEventListener("cartUpdated", handleStorageChange);
+    return () => window.removeEventListener("cartUpdated", handleStorageChange);
+  }, []);
+
+  // Remove item from cart
   const removeItem = (index) => {
     const updated = cartItems.filter((_, i) => i !== index);
     setCartItems(updated);
@@ -17,102 +40,314 @@ const Cart = () => {
     window.dispatchEvent(new Event("cartUpdated"));
   };
 
+  // Clear entire cart
   const clearCart = () => {
     setCartItems([]);
     localStorage.removeItem("hotelCart");
     window.dispatchEvent(new Event("cartUpdated"));
   };
 
-  const totalPrice = cartItems.reduce((sum, item) => sum + item.price, 0);
+  // Start editing an item
+  const startEdit = (index) => {
+    setEditingIndex(index);
+    setEditForm({
+      guests: cartItems[index].guests || 2,
+      rooms: cartItems[index].rooms || 1,
+      checkIn: cartItems[index].checkIn || "",
+      checkOut: cartItems[index].checkOut || ""
+    });
+  };
+
+  // Cancel editing
+  const cancelEdit = () => {
+    setEditingIndex(null);
+    setEditForm({});
+  };
+
+  // Save edited item
+  const saveEdit = (index) => {
+    const updated = [...cartItems];
+    updated[index] = {
+      ...updated[index],
+      guests: editForm.guests,
+      rooms: editForm.rooms,
+      checkIn: editForm.checkIn,
+      checkOut: editForm.checkOut,
+      price: updated[index].basePrice * editForm.rooms // Recalculate price
+    };
+    setCartItems(updated);
+    localStorage.setItem("hotelCart", JSON.stringify(updated));
+    window.dispatchEvent(new Event("cartUpdated"));
+    setEditingIndex(null);
+  };
+
+  // Update room quantity
+  const updateRooms = (index, delta) => {
+    const updated = [...cartItems];
+    const newRooms = Math.max(1, Math.min(10, (updated[index].rooms || 1) + delta));
+    updated[index].rooms = newRooms;
+    updated[index].price = (updated[index].basePrice || updated[index].price) * newRooms;
+    setCartItems(updated);
+    localStorage.setItem("hotelCart", JSON.stringify(updated));
+    window.dispatchEvent(new Event("cartUpdated"));
+  };
+
+  const totalPrice = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
+  const totalRooms = cartItems.reduce((sum, item) => sum + (item.rooms || 1), 0);
+
+  // Proceed to checkout
+  const handleCheckout = () => {
+    if (cartItems.length === 0) return;
+    navigate("/checkout");
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 pt-28">
-      <div className="flex items-center gap-3 mb-8">
-        <ShoppingCartIcon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-        <h1 className="text-3xl font-bold dark:text-white transition-colors">Your Cart</h1>
-        {cartItems.length > 0 && (
-          <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-sm font-semibold transition-colors">
-            {cartItems.length} item{cartItems.length !== 1 ? "s" : ""}
-          </span>
-        )}
-      </div>
-
-      {cartItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-gray-800 rounded-2xl border dark:border-gray-700 shadow-sm transition-colors text-center">
-          <div className="bg-gray-100 dark:bg-gray-700 rounded-full p-6 mb-6">
-            <ShoppingCartIcon className="w-16 h-16 text-gray-400 dark:text-gray-500" />
+    <div className="min-h-screen pt-24 pb-12 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+              <ShoppingCartIcon className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold dark:text-white transition-colors">
+                Your Cart
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} • {totalRooms} {totalRooms === 1 ? 'room' : 'rooms'}
+              </p>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Your cart is empty</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md">
-            Looks like you haven't added any hotels yet. Start searching for your perfect stay!
-          </p>
-          <Link
-            to="/"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-          >
-            Search Hotels
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {cartItems.map((item, index) => (
-            <div
-              key={index}
-              className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 shadow-sm p-4 flex items-center justify-between gap-4 transition-colors"
+          {cartItems.length > 0 && (
+            <button
+              onClick={clearCart}
+              className="flex items-center gap-2 px-4 py-2 border border-red-400 text-red-600 dark:text-red-400 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
-              <div className="flex-1">
-                <h3 className="text-lg font-bold dark:text-white">{item.hotel}</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">{item.roomType}</p>
-                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-500">
-                  <span>📅 {item.checkIn} - {item.checkOut}</span>
-                  <span>👥 {item.guests} Guest{item.guests !== "1" ? "s" : ""}</span>
-                  <span>🛏️ {item.rooms} Room{item.rooms !== "1" ? "s" : ""}</span>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-xl font-bold dark:text-white">{currency(item.price)}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">per night</p>
-              </div>
-              <button
-                onClick={() => removeItem(index)}
-                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
-                title="Remove item"
-              >
-                <TrashIcon className="h-5 w-5" />
-              </button>
-            </div>
-          ))}
+              <TrashIcon className="h-4 w-4" />
+              Clear All
+            </button>
+          )}
+        </div>
 
-          {/* Cart Summary */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border dark:border-gray-700 p-6 mt-6 transition-colors">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">Subtotal</span>
-              <span className="text-2xl font-bold dark:text-white">{currency(totalPrice)}</span>
+        {cartItems.length === 0 ? (
+          /* Empty Cart State */
+          <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-gray-800 rounded-2xl border dark:border-gray-700 shadow-sm transition-colors text-center">
+            <div className="bg-gray-100 dark:bg-gray-700 rounded-full p-6 mb-6">
+              <ShoppingCartIcon className="w-16 h-16 text-gray-400 dark:text-gray-500" />
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Taxes and fees will be calculated at checkout
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Your cart is empty</h2>
+            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md">
+              Looks like you haven't added any hotels yet. Start searching for your perfect stay!
             </p>
-            <div className="flex gap-3">
-              <button
-                onClick={clearCart}
-                className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-              >
-                Clear Cart
-              </button>
-              <button className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                Proceed to Checkout
-              </button>
-            </div>
-          </div>
-
-          {/* Continue Shopping */}
-          <div className="text-center mt-6">
-            <Link to="/" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-              ← Continue Shopping
+            <Link
+              to="/"
+              className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-xl font-semibold hover:from-yellow-500 hover:to-yellow-600 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              Search Hotels
             </Link>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Cart Items */}
+            <div className="lg:col-span-2 space-y-4">
+              {cartItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden transition-all hover:shadow-xl"
+                >
+                  <div className="flex flex-col md:flex-row">
+                    {/* Hotel Image */}
+                    <div className="w-full md:w-48 h-40 md:h-auto flex-shrink-0">
+                      <img
+                        src={item.image || "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=400"}
+                        alt={item.hotel}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
+                    {/* Item Details */}
+                    <div className="flex-1 p-5">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="text-xl font-bold dark:text-white">{item.hotel}</h3>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm">{item.roomType}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => startEdit(index)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition"
+                            title="Edit item"
+                          >
+                            <PencilIcon className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => removeItem(index)}
+                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+                            title="Remove item"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {editingIndex === index ? (
+                        /* Edit Form */
+                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Check-in</label>
+                              <input
+                                type="date"
+                                value={editForm.checkIn}
+                                onChange={(e) => setEditForm({...editForm, checkIn: e.target.value})}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-yellow-400"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Check-out</label>
+                              <input
+                                type="date"
+                                value={editForm.checkOut}
+                                onChange={(e) => setEditForm({...editForm, checkOut: e.target.value})}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-yellow-400"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Guests</label>
+                              <input
+                                type="number"
+                                min="1"
+                                max="10"
+                                value={editForm.guests}
+                                onChange={(e) => setEditForm({...editForm, guests: parseInt(e.target.value)})}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-yellow-400"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rooms</label>
+                              <input
+                                type="number"
+                                min="1"
+                                max="10"
+                                value={editForm.rooms}
+                                onChange={(e) => setEditForm({...editForm, rooms: parseInt(e.target.value)})}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-yellow-400"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={cancelEdit}
+                              className="flex items-center gap-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                            >
+                              <XMarkIcon className="h-4 w-4" />
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => saveEdit(index)}
+                              className="flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-lg font-semibold hover:from-yellow-500 hover:to-yellow-600 transition"
+                            >
+                              <CheckIcon className="h-4 w-4" />
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Display Mode */
+                        <>
+                          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            <span className="flex items-center gap-1">
+                              <CalendarIcon className="h-4 w-4" />
+                              {item.checkIn} - {item.checkOut}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <UserGroupIcon className="h-4 w-4" />
+                              {item.guests} Guest{item.guests !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+
+                          {/* Room Quantity Controls */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-medium dark:text-gray-300">Rooms:</span>
+                              <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                                <button
+                                  onClick={() => updateRooms(index, -1)}
+                                  disabled={item.rooms <= 1}
+                                  className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                >
+                                  <MinusIcon className="h-4 w-4 dark:text-white" />
+                                </button>
+                                <span className="w-8 text-center font-semibold dark:text-white">{item.rooms || 1}</span>
+                                <button
+                                  onClick={() => updateRooms(index, 1)}
+                                  disabled={item.rooms >= 10}
+                                  className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                >
+                                  <PlusIcon className="h-4 w-4 dark:text-white" />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{currency(item.price)}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">per night</p>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Order Summary Sidebar */}
+            <div className="lg:col-span-1">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg p-6 sticky top-28">
+                <h3 className="text-xl font-bold dark:text-white mb-6">Order Summary</h3>
+                
+                <div className="space-y-3 mb-6">
+                  <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                    <span>Subtotal ({totalRooms} rooms)</span>
+                    <span className="font-medium dark:text-white">{currency(totalPrice)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                    <span>Taxes & Fees</span>
+                    <span className="font-medium dark:text-white">{currency(totalPrice * 0.18)}</span>
+                  </div>
+                  <hr className="border-gray-200 dark:border-gray-700" />
+                  <div className="flex justify-between text-lg font-bold dark:text-white">
+                    <span>Total</span>
+                    <span className="text-blue-600 dark:text-blue-400">{currency(totalPrice * 1.18)}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleCheckout}
+                  className="w-full py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-xl font-bold hover:from-yellow-500 hover:to-yellow-600 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  Proceed to Checkout
+                </button>
+
+                <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <p className="text-sm text-green-700 dark:text-green-400 text-center">
+                    ✓ Free cancellation available
+                  </p>
+                </div>
+
+                <div className="mt-6 text-center">
+                  <Link to="/" className="text-blue-600 dark:text-blue-400 hover:underline font-medium text-sm">
+                    ← Continue Shopping
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

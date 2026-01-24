@@ -10,7 +10,7 @@ import {
     FaFlag,
     FaReply,
 } from 'react-icons/fa';
-import AdminLayout from '../../layouts/AdminLayout';
+import OwnerLayout from '../../layouts/OwnerLayout';
 
 const ReviewsManagement = () => {
     const [reviews, setReviews] = useState([
@@ -189,7 +189,7 @@ const ReviewsManagement = () => {
     ];
 
     return (
-        <AdminLayout>
+        <OwnerLayout>
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50 to-orange-50 dark:from-slate-900 dark:via-slate-800 dark:to-orange-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Header */}
@@ -435,7 +435,7 @@ const ReviewsManagement = () => {
                     )}
                 </div>
             </div>
-        </AdminLayout>
+        </OwnerLayout>
     );
 };
 

@@ -11,7 +11,7 @@ import {
     CheckCircleIcon,
     XCircleIcon,
 } from '@heroicons/react/24/outline';
-import AdminLayout from '../../layouts/AdminLayout';
+import OwnerLayout from '../../layouts/OwnerLayout';
 
 const HotelierSettings = () => {
     const [activeTab, setActiveTab] = useState('account');
@@ -88,7 +88,7 @@ const HotelierSettings = () => {
     ];
 
     return (
-        <AdminLayout>
+        <OwnerLayout>
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Header */}
@@ -534,7 +534,7 @@ const HotelierSettings = () => {
                     </div>
                 </div>
             </div>
-        </AdminLayout>
+        </OwnerLayout>
     );
 };
 

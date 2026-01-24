@@ -46,7 +46,6 @@ const SearchBar = ({ initialValues }) => {
     },
   ]);
 
-<<<<<<< Updated upstream
   const [adults, setAdults] = useState(Number(initialValues?.adults) || 2);
   const [children, setChildren] = useState(Number(initialValues?.children) || 0);
   const [rooms, setRooms] = useState(Number(initialValues?.rooms) || 1);
@@ -67,12 +66,6 @@ const SearchBar = ({ initialValues }) => {
 
     return () => clearInterval(interval);
   }, []);
-=======
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
-  const [rooms, setRooms] = useState(1);
-  const [petsAllowed, setPetsAllowed] = useState(false);
->>>>>>> Stashed changes
 
   // Outside click handler
   useEffect(() => {
@@ -112,7 +105,6 @@ const SearchBar = ({ initialValues }) => {
   }, []);
 
   return (
-<<<<<<< Updated upstream
     <div className="relative mt-0">
 
       {/* Search Bar */}
@@ -121,14 +113,6 @@ const SearchBar = ({ initialValues }) => {
         {/* Destination with Animated Label */}
         <div className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r dark:border-gray-700">
           <MagnifyingGlassIcon className="h-6 w-6 text-gray-500 dark:text-gray-400" />
-=======
-    <div className="relative mt-10">
-      {/* Search Bar */}
-      <div className="bg-white shadow-xl rounded-2xl border overflow-hidden flex flex-col md:flex-row">
-        {/* Destination */}
-        <div className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r">
-          <MagnifyingGlassIcon className="h-6 w-6 text-gray-500" />
->>>>>>> Stashed changes
           <div className="w-full">
             {/* Animated Label */}
             <p
@@ -191,7 +175,6 @@ const SearchBar = ({ initialValues }) => {
           </div>
         </div>
 
-<<<<<<< Updated upstream
         {/* Calendar Popup */}
         {openCalendar && (
           <div
@@ -244,10 +227,6 @@ const SearchBar = ({ initialValues }) => {
           </div>
         )}
 
-
-
-=======
->>>>>>> Stashed changes
         {/* Guests */}
         <div
           className="flex items-center gap-4 px-6 py-4 flex-1 border-b md:border-b-0 md:border-r dark:border-gray-700 cursor-pointer hover:bg-yellow-50 dark:hover:bg-gray-700 transition rounded-xl"
@@ -267,7 +246,6 @@ const SearchBar = ({ initialValues }) => {
 
 
         {/* Search Button */}
-<<<<<<< Updated upstream
         <button
           onClick={() => {
             if (!destination.trim()) {
@@ -284,47 +262,14 @@ const SearchBar = ({ initialValues }) => {
             });
             navigate(`/search?${params.toString()}`);
           }}
-          className={`bg-blue-600 hover:bg-blue-700 transition text-white font-semibold text-lg px-10 py-3 rounded-xl shadow-md ${
+          className={`bg-blue-600 hover:bg-blue-700 transition text-white font-semibold text-lg px-10 py-2  rounded-xl shadow-md ${
             !destination.trim() ? "opacity-50 cursor-not-allowed" : ""
           }`}
           disabled={!destination.trim()}
         >
           Search
         </button>
-
-=======
-        <button className="bg-blue-600 hover:bg-blue-700 transition text-white font-semibold text-lg px-10 py-3 rounded-xl mx-4 my-3 shadow-md">
-          Search
-        </button>
->>>>>>> Stashed changes
       </div>
-
-      {/* Calendar Popup */}
-      {openCalendar && (
-        <div
-          ref={calendarRef}
-          className="absolute z-50 mt-4 left-0 bg-white shadow-2xl rounded-xl p-4"
-        >
-          <div className="flex justify-end mb-2">
-            <button
-              onClick={() => setOpenCalendar(false)}
-              className="p-1 rounded-full hover:bg-gray-100"
-            >
-              <XMarkIcon className="h-5 w-5 text-gray-500" />
-            </button>
-          </div>
-
-          <DateRange
-            editableDateInputs={true}
-            onChange={(item) => setDateRange([item.selection])}
-            moveRangeOnFirstSelection={false}
-            ranges={dateRange}
-            months={2}
-            direction="horizontal"
-            className="rounded-lg"
-          />
-        </div>
-      )}
 
       {/* Guests Popup */}
       {openGuests && (

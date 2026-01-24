@@ -8,12 +8,7 @@ import {
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import MenuDropdown from "./MenuDropdown";
-<<<<<<< Updated upstream
 import { useAuth } from "../context/AuthContext";
-=======
-import { Link } from "react-router-dom";
-
->>>>>>> Stashed changes
 
 const Navbar = () => {
   const [openMenu, setOpenMenu] = useState(false);
@@ -69,11 +64,10 @@ const Navbar = () => {
 
   return (
 
-    <nav className="w-full fixed top-0 left-0 z-50 bg-white dark:bg-gray-800 border-b dark:border-gray-700 shadow-sm transition-colors duration-300">
+    <nav className="w-full fixed top-0 left-0 z-50 bg-white dark:bg-gray-800 border-b dark:border-gray-700 shadow-sm transition-colors duration-300 ">
       <div className="max-w-7xl mx-auto flex items-center justify-between h-20 px-4 md:px-8">
 
         {/* Logo */}
-<<<<<<< Updated upstream
         <Link to="/" className="flex items-center h-full">
           <img
             src={logo}
@@ -81,18 +75,6 @@ const Navbar = () => {
             className="h-12 object-contain cursor-pointer dark:brightness-110"
           />
         </Link>
-=======
-        <div className="flex items-center h-full">
-            {/* Logo */}
-            <Link to="/" className="flex items-center h-full">
-              <img
-                src={logo}
-                alt="stays.in"
-                className="h-12 object-contain cursor-pointer"
-              />
-            </Link>
-        </div>
->>>>>>> Stashed changes
 
         {/* Right Controls */}
         <div className="flex items-center gap-4">
@@ -130,7 +112,6 @@ const Navbar = () => {
             </Link>
           )}
 
-<<<<<<< Updated upstream
           {/* User Avatar / Sign In Button */}
           {isAuthenticated ? (
             <div ref={menuRef} className="relative">
@@ -149,36 +130,30 @@ const Navbar = () => {
               <MenuDropdown open={openMenu} onClose={() => setOpenMenu(false)} />
             </div>
           ) : (
-            <button
-              onClick={() => navigate("/login")}
-              className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2 font-semibold hover:bg-yellow-50 dark:hover:bg-gray-700 transition-colors dark:text-white"
-            >
-              <UserCircleIcon className="h-5 w-5" />
-              Sign in
-            </button>
-          )}
-
-          {/* Menu Button - Only show if NOT authenticated */}
-          {!isAuthenticated && (
-            <div ref={menuRef} className="relative">
+            <div ref={menuRef} className="flex items-center gap-4">
               <button
-                onClick={() => setOpenMenu(!openMenu)}
-                className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2 hover:bg-yellow-50 dark:hover:bg-gray-700 transition-colors dark:text-white"
+                onClick={() => navigate("/login")}
+                className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2 font-semibold  bg-yellow-400 hover:bg-yellow-500  dark:hover:bg-gray-700 transition-colors dark:text-white"
               >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                </svg>
-                Menu
+                <UserCircleIcon className="h-5 w-5" />
+                Sign in
               </button>
-              {/* Dropdown Menu for non-authenticated users */}
-              <MenuDropdown open={openMenu} onClose={() => setOpenMenu(false)} />
+
+              <div className="relative">
+                <button
+                  onClick={() => setOpenMenu(!openMenu)}
+                  className="flex items-center gap-2 border border-yellow-400 rounded-xl px-5 py-2  bg-yellow-400 hover:bg-yellow-500  dark:hover:bg-gray-700 transition-colors dark:text-white"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                  </svg>
+                  Menu
+                </button>
+                {/* Dropdown Menu for non-authenticated users */}
+                <MenuDropdown open={openMenu} onClose={() => setOpenMenu(false)} />
+              </div>
             </div>
           )}
-=======
-            {/* Dropdown */}
-            <MenuDropdown open={openMenu} onClose={() => setOpenMenu(false)} />
-          </div>
->>>>>>> Stashed changes
 
         </div>
       </div>

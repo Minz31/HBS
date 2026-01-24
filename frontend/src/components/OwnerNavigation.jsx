@@ -18,22 +18,22 @@ import {
 import { useState } from 'react';
 import { useHotel } from '../context/HotelContext';
 
-const AdminNavigation = () => {
+const OwnerNavigation = () => {
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [showHotelSelector, setShowHotelSelector] = useState(false);
     const { hotels, selectedHotel, selectHotel } = useHotel();
 
     const navItems = [
-        { path: '/admin/dashboard', label: 'Dashboard', icon: FaChartBar },
-        { path: '/admin/hotel-profile', label: 'Hotel Profile', icon: FaHotel },
-        { path: '/admin/rooms', label: 'Rooms', icon: FaBed },
-        { path: '/admin/room-types', label: 'Room Types', icon: FaBed },
-        { path: '/admin/bookings', label: 'Bookings', icon: FaCalendarAlt },
-        { path: '/admin/pricing', label: 'Pricing', icon: FaMoneyBillWave },
-        { path: '/admin/reviews', label: 'Reviews', icon: FaStar },
-        { path: '/admin/revenue', label: 'Revenue', icon: FaChartPie },
-        { path: '/admin/settings', label: 'Settings', icon: FaCog },
+        { path: '/owner/dashboard', label: 'Dashboard', icon: FaChartBar },
+        { path: '/owner/hotel-profile', label: 'Hotel Profile', icon: FaHotel },
+        { path: '/owner/rooms', label: 'Rooms', icon: FaBed },
+        { path: '/owner/room-types', label: 'Room Types', icon: FaBed },
+        { path: '/owner/bookings', label: 'Bookings', icon: FaCalendarAlt },
+        { path: '/owner/pricing', label: 'Pricing', icon: FaMoneyBillWave },
+        { path: '/owner/reviews', label: 'Reviews', icon: FaStar },
+        { path: '/owner/revenue', label: 'Revenue', icon: FaChartPie },
+        { path: '/owner/settings', label: 'Settings', icon: FaCog },
     ];
 
     const isActive = (path) => location.pathname === path;
@@ -184,7 +184,7 @@ const AdminNavigation = () => {
                         </div>
                         <div>
                             <p className="font-semibold text-gray-900 dark:text-white text-sm">John Doe</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Hotel Manager</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Hotel Owner</p>
                         </div>
                     </div>
                 </div>
@@ -201,4 +201,4 @@ const AdminNavigation = () => {
     );
 };
 
-export default AdminNavigation;
+export default OwnerNavigation;
