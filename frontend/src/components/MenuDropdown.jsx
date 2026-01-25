@@ -46,36 +46,40 @@ const MenuDropdown = ({ open, onClose }) => {
           />
         </MenuSection>
 
-        {/* Trips Section */}
-        <MenuSection title="Trips">
-          <MenuItem
-            icon={HeartIcon}
-            label="Favorites"
-            to="/favorites"
-            onClick={onClose}
-          />
-          <MenuItem
-            icon={ClockIcon}
-            label="Recently viewed"
-            to="/recent"
-            onClick={onClose}
-          />
-          <MenuItem
-            icon={BriefcaseIcon}
-            label="Bookings"
-            to="/bookings"
-            onClick={onClose}
-          />
-        </MenuSection>
+        {/* Trips Section - Hidden for Admins */}
+        {user?.role !== 'admin' && (
+          <MenuSection title="Trips">
+            <MenuItem
+              icon={HeartIcon}
+              label="Favorites"
+              to="/favorites"
+              onClick={onClose}
+            />
+            <MenuItem
+              icon={ClockIcon}
+              label="Recently viewed"
+              to="/recent"
+              onClick={onClose}
+            />
+            <MenuItem
+              icon={BriefcaseIcon}
+              label="Bookings"
+              to="/bookings"
+              onClick={onClose}
+            />
+          </MenuSection>
+        )}
 
 
         <MenuSection title="Support">
-          <MenuItem
-            icon={QuestionMarkCircleIcon}
-            label="Help and support"
-            to="/help"
-            onClick={onClose}
-          />
+          {user?.role !== 'admin' && (
+            <MenuItem
+              icon={QuestionMarkCircleIcon}
+              label="Help and support"
+              to="/help"
+              onClick={onClose}
+            />
+          )}
         {/* Role-based dashboard links */}
           {user?.role === 'admin' && (
             <MenuItem

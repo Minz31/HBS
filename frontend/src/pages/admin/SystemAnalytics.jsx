@@ -18,36 +18,33 @@ const SystemAnalytics = () => {
     totalHotels: 248,
     totalCustomers: 15420,
     totalBookings: 8956,
-    totalRevenue: 45678000,
     pendingApprovals: 12,
-    activeListings: 235,
-    monthlyGrowth: 12.5,
-    customerGrowth: 8.3
+    activeListings: 235
   });
 
   const [recentBookings] = useState([
-    { id: 1, hotel: 'Taj Lands End', customer: 'John Doe', amount: 45500, date: '2026-01-24', status: 'confirmed' },
-    { id: 2, hotel: 'The Oberoi', customer: 'Jane Smith', amount: 78000, date: '2026-01-23', status: 'confirmed' },
-    { id: 3, hotel: 'ITC Maratha', customer: 'Mike Johnson', amount: 32000, date: '2026-01-23', status: 'pending' },
-    { id: 4, hotel: 'Leela Palace', customer: 'Sarah Williams', amount: 125000, date: '2026-01-22', status: 'confirmed' },
-    { id: 5, hotel: 'Trident', customer: 'David Brown', amount: 28500, date: '2026-01-22', status: 'cancelled' },
+    { id: 1, hotel: 'Taj Lands End', customer: 'John Doe', date: '2026-01-24', status: 'confirmed' },
+    { id: 2, hotel: 'The Oberoi', customer: 'Jane Smith', date: '2026-01-23', status: 'confirmed' },
+    { id: 3, hotel: 'ITC Maratha', customer: 'Mike Johnson', date: '2026-01-23', status: 'pending' },
+    { id: 4, hotel: 'Leela Palace', customer: 'Sarah Williams', date: '2026-01-22', status: 'confirmed' },
+    { id: 5, hotel: 'Trident', customer: 'David Brown', date: '2026-01-22', status: 'cancelled' },
   ]);
 
   const [topLocations] = useState([
-    { city: 'Goa', hotels: 62, bookings: 1250, revenue: 8500000 },
-    { city: 'Mumbai', hotels: 45, bookings: 980, revenue: 7800000 },
-    { city: 'Delhi', hotels: 38, bookings: 850, revenue: 6500000 },
-    { city: 'Jaipur', hotels: 28, bookings: 620, revenue: 4200000 },
-    { city: 'Udaipur', hotels: 22, bookings: 480, revenue: 5100000 },
+    { city: 'Goa', hotels: 62, bookings: 1250 },
+    { city: 'Mumbai', hotels: 45, bookings: 980 },
+    { city: 'Delhi', hotels: 38, bookings: 850 },
+    { city: 'Jaipur', hotels: 28, bookings: 620 },
+    { city: 'Udaipur', hotels: 22, bookings: 480 },
   ]);
 
   const [monthlyData] = useState([
-    { month: 'Jan', bookings: 720, revenue: 3200000 },
-    { month: 'Feb', bookings: 680, revenue: 2900000 },
-    { month: 'Mar', bookings: 890, revenue: 4100000 },
-    { month: 'Apr', bookings: 950, revenue: 4500000 },
-    { month: 'May', bookings: 1100, revenue: 5200000 },
-    { month: 'Jun', bookings: 1250, revenue: 5800000 },
+    { month: 'Jan', bookings: 720 },
+    { month: 'Feb', bookings: 680 },
+    { month: 'Mar', bookings: 890 },
+    { month: 'Apr', bookings: 950 },
+    { month: 'May', bookings: 1100 },
+    { month: 'Jun', bookings: 1250 },
   ]);
 
   const currency = (v) => new Intl.NumberFormat('en-IN', { 
@@ -70,7 +67,7 @@ const SystemAnalytics = () => {
     }
   };
 
-  const maxRevenue = Math.max(...monthlyData.map(d => d.revenue));
+  const maxBookings = Math.max(...monthlyData.map(d => d.bookings));
 
   return (
     <AdminLayout>
@@ -105,16 +102,12 @@ const SystemAnalytics = () => {
           </div>
 
           {/* Main Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <div className="bg-white dark:bg-gray-800 rounded-2xl border dark:border-gray-700 shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
                   <FaHotel className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <span className="flex items-center gap-1 text-green-600 text-sm font-medium">
-                  <ArrowTrendingUpIcon className="h-4 w-4" />
-                  +{stats.monthlyGrowth}%
-                </span>
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Total Hotels</p>
               <p className="text-3xl font-bold dark:text-white">{stats.totalHotels}</p>
@@ -125,10 +118,6 @@ const SystemAnalytics = () => {
                 <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
                   <FaUsers className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
-                <span className="flex items-center gap-1 text-green-600 text-sm font-medium">
-                  <ArrowTrendingUpIcon className="h-4 w-4" />
-                  +{stats.customerGrowth}%
-                </span>
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Total Customers</p>
               <p className="text-3xl font-bold dark:text-white">{formatNumber(stats.totalCustomers)}</p>
@@ -144,31 +133,23 @@ const SystemAnalytics = () => {
               <p className="text-3xl font-bold dark:text-white">{formatNumber(stats.totalBookings)}</p>
             </div>
 
-            <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-white/20 rounded-xl">
-                  <FaMoneyBillWave className="h-6 w-6 text-gray-900" />
-                </div>
-              </div>
-              <p className="text-sm text-gray-800">Total Revenue</p>
-              <p className="text-3xl font-bold text-gray-900">{formatNumber(stats.totalRevenue)}</p>
-            </div>
+
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Revenue Chart */}
+            {/* Bookings Chart */}
             <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border dark:border-gray-700 shadow-lg p-6">
-              <h3 className="text-lg font-bold dark:text-white mb-6">Revenue Trend</h3>
+              <h3 className="text-lg font-bold dark:text-white mb-6">Bookings Trend</h3>
               <div className="h-64 flex items-end justify-between gap-4">
                 {monthlyData.map((data, index) => (
                   <div key={index} className="flex-1 flex flex-col items-center">
                     <div className="w-full flex flex-col items-center">
                       <span className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                        {formatNumber(data.revenue)}
+                        {formatNumber(data.bookings)}
                       </span>
                       <div
                         className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg transition-all hover:from-blue-700 hover:to-blue-500"
-                        style={{ height: `${(data.revenue / maxRevenue) * 180}px` }}
+                        style={{ height: `${(data.bookings / maxBookings) * 180}px` }}
                       />
                     </div>
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-400 mt-2">{data.month}</span>
@@ -198,7 +179,6 @@ const SystemAnalytics = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-green-600 dark:text-green-400">{formatNumber(location.revenue)}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">{location.bookings} bookings</p>
                     </div>
                   </div>
@@ -218,7 +198,6 @@ const SystemAnalytics = () => {
                   <tr>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">Hotel</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">Customer</th>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">Amount</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">Date</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">Status</th>
                   </tr>
@@ -228,7 +207,6 @@ const SystemAnalytics = () => {
                     <tr key={booking.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                       <td className="py-4 px-6 font-semibold dark:text-white">{booking.hotel}</td>
                       <td className="py-4 px-6 text-gray-600 dark:text-gray-400">{booking.customer}</td>
-                      <td className="py-4 px-6 font-bold text-green-600 dark:text-green-400">{currency(booking.amount)}</td>
                       <td className="py-4 px-6 text-gray-600 dark:text-gray-400">{booking.date}</td>
                       <td className="py-4 px-6">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusStyle(booking.status)}`}>

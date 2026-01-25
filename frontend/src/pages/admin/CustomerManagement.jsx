@@ -152,9 +152,6 @@ const CustomerManagement = () => {
                         <div className="flex gap-2">
                             {[
                                 { key: 'all', label: 'All' },
-                                { key: 'active', label: 'Active' },
-                                { key: 'inactive', label: 'Inactive' },
-                                { key: 'suspended', label: 'Suspended' },
                             ].map((tab) => (
                                 <button
                                     key={tab.key}
@@ -171,22 +168,10 @@ const CustomerManagement = () => {
                     </div>
 
                     {/* Stats Summary */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div className="grid grid-cols-1 gap-4 mb-6">
                         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border dark:border-gray-700">
                             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{customers.length}</p>
                             <p className="text-sm text-gray-600 dark:text-gray-400">Total Customers</p>
-                        </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border dark:border-gray-700">
-                            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{customers.filter(c => c.status === 'active').length}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Active</p>
-                        </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border dark:border-gray-700">
-                            <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">{customers.filter(c => c.status === 'inactive').length}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Inactive</p>
-                        </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border dark:border-gray-700">
-                            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{customers.filter(c => c.status === 'suspended').length}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Suspended</p>
                         </div>
                     </div>
 
@@ -199,7 +184,6 @@ const CustomerManagement = () => {
                                         <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300">Customer</th>
                                         <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300">Contact</th>
                                         <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300">Bookings</th>
-                                        <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300">Status</th>
                                         <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300">Actions</th>
                                     </tr>
                                 </thead>
@@ -226,15 +210,6 @@ const CustomerManagement = () => {
                                                 <p className="text-sm text-gray-500 dark:text-gray-400">{customer.totalSpent} spent</p>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                                    customer.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                                    customer.status === 'inactive' ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400' :
-                                                    'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                                }`}>
-                                                    {customer.status.toUpperCase()}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={() => setSelectedCustomer(customer)}
@@ -243,23 +218,6 @@ const CustomerManagement = () => {
                                                     >
                                                         <FaEye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                                                     </button>
-                                                    {customer.status !== 'suspended' ? (
-                                                        <button
-                                                            onClick={() => toggleStatus(customer.id, 'suspended')}
-                                                            className="p-2 border border-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                                            title="Suspend"
-                                                        >
-                                                            <FaBan className="h-4 w-4 text-red-600 dark:text-red-400" />
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => toggleStatus(customer.id, 'active')}
-                                                            className="p-2 border border-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
-                                                            title="Reactivate"
-                                                        >
-                                                            <FaCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
-                                                        </button>
-                                                    )}
                                                 </div>
                                             </td>
                                         </tr>
@@ -291,13 +249,6 @@ const CustomerManagement = () => {
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-bold dark:text-white">{selectedCustomer.name}</h2>
-                                    <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                                        selectedCustomer.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                        selectedCustomer.status === 'inactive' ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400' :
-                                        'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                    }`}>
-                                        {selectedCustomer.status.toUpperCase()}
-                                    </span>
                                 </div>
                             </div>
                             <button
@@ -359,27 +310,7 @@ const CustomerManagement = () => {
 
                         {/* Actions */}
                         <div className="flex gap-3">
-                            {selectedCustomer.status !== 'suspended' ? (
-                                <button
-                                    onClick={() => {
-                                        toggleStatus(selectedCustomer.id, 'suspended');
-                                        setSelectedCustomer(null);
-                                    }}
-                                    className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors"
-                                >
-                                    Suspend Account
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => {
-                                        toggleStatus(selectedCustomer.id, 'active');
-                                        setSelectedCustomer(null);
-                                    }}
-                                    className="flex-1 px-4 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors"
-                                >
-                                    Reactivate Account
-                                </button>
-                            )}
+
                             <button
                                 onClick={() => handleDelete(selectedCustomer.id)}
                                 className="px-4 py-3 border border-red-400 text-red-600 dark:text-red-400 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"

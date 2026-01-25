@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import AdminLayout from '../../layouts/AdminLayout';
 import {
     FaUsers,
@@ -7,41 +6,24 @@ import {
     FaClipboardList,
     FaExclamationTriangle,
     FaCheckCircle,
-    FaArrowUp,
-    FaArrowDown,
     FaCog,
     FaMapMarkerAlt,
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 const SuperAdminDashboard = () => {
-    const [timeRange, setTimeRange] = useState('week');
-
     // Mock statistics
     const stats = [
         {
             label: 'Total Hotels',
             value: '1,247',
-            change: '+23',
-            trend: 'up',
             icon: FaHotel,
             gradient: 'from-blue-500 to-indigo-600',
             link: '/superadmin/hotels',
         },
         {
-            label: 'Active Users',
-            value: '45,892',
-            change: '+1,234',
-            trend: 'up',
-            icon: FaUsers,
-            gradient: 'from-emerald-500 to-teal-600',
-            link: '/superadmin/customers',
-        },
-        {
             label: 'Pending Approvals',
             value: '18',
-            change: '-5',
-            trend: 'down',
             icon: FaClipboardList,
             gradient: 'from-amber-500 to-orange-600',
             link: '/superadmin/approvals',
@@ -49,8 +31,6 @@ const SuperAdminDashboard = () => {
         {
             label: 'Open Complaints',
             value: '42',
-            change: '+8',
-            trend: 'up',
             icon: FaExclamationTriangle,
             gradient: 'from-red-500 to-pink-600',
             link: '/superadmin/complaints',
@@ -61,8 +41,6 @@ const SuperAdminDashboard = () => {
     const quickActions = [
         { label: 'Approve Hotels', icon: FaCheckCircle, link: '/superadmin/approvals', color: 'from-blue-600 to-blue-700' },
         { label: 'View Analytics', icon: FaChartLine, link: '/superadmin/analytics', color: 'from-emerald-600 to-emerald-700' },
-        { label: 'Manage Locations', icon: FaMapMarkerAlt, link: '/superadmin/locations', color: 'from-purple-600 to-purple-700' },
-        { label: 'System Settings', icon: FaCog, link: '/superadmin/settings', color: 'from-gray-600 to-gray-700' },
     ];
 
     // Recent activities
@@ -91,31 +69,14 @@ const SuperAdminDashboard = () => {
                             Admin Dashboard 🛡️
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400 mt-2">
-                            Manage hotels, users, and system settings
+                            Manage hotels, users, and platform analytics
                         </p>
                     </div>
 
-                    {/* Time Range Selector */}
-                    <div className="mb-6 flex gap-2">
-                        {['Today', 'Week', 'Month', 'Year'].map((range) => (
-                            <button
-                                key={range}
-                                onClick={() => setTimeRange(range.toLowerCase())}
-                                className={`px-4 py-2 rounded-xl font-semibold transition-all ${timeRange === range.toLowerCase()
-                                    ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg shadow-yellow-500/30'
-                                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:shadow-md border border-yellow-400'
-                                    }`}
-                            >
-                                {range}
-                            </button>
-                        ))}
-                    </div>
-
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                         {stats.map((stat, index) => {
                             const Icon = stat.icon;
-                            const TrendIcon = stat.trend === 'up' ? FaArrowUp : FaArrowDown;
                             return (
                                 <Link
                                     to={stat.link}
@@ -127,10 +88,6 @@ const SuperAdminDashboard = () => {
                                         <div className="flex items-center justify-between mb-4">
                                             <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg`}>
                                                 <Icon className="h-6 w-6 text-white" />
-                                            </div>
-                                            <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${stat.trend === 'up' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}>
-                                                <TrendIcon className="h-4 w-4" />
-                                                <span className="text-sm font-semibold">{stat.change}</span>
                                             </div>
                                         </div>
                                         <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">{stat.label}</p>

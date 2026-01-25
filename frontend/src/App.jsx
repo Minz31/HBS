@@ -31,7 +31,6 @@ import HotelOwnerCRUD from './pages/admin/HotelOwnerCRUD';
 import SuperAdminDashboard from './pages/admin/SuperAdminDashboard';
 import HotelApprovals from './pages/admin/HotelApprovals';
 import CustomerManagement from './pages/admin/CustomerManagement';
-import LocationManagement from './pages/admin/LocationManagement';
 import SystemAnalytics from './pages/admin/SystemAnalytics';
 
 // Context Providers
@@ -75,7 +74,6 @@ function App() {
             <Route path="/admin/approvals" element={<HotelApprovals />} />
             <Route path="/admin/customers" element={<CustomerManagement />} />
             <Route path="/admin/hotels" element={<HotelOwnerCRUD />} />
-            <Route path="/admin/locations" element={<LocationManagement />} />
             <Route path="/admin/analytics" element={<SystemAnalytics />} />
           </Routes>
         </main>

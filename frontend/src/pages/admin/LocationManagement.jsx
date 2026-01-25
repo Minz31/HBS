@@ -12,13 +12,13 @@ import {
 
 const LocationManagement = () => {
   const [locations, setLocations] = useState([
-    { id: 1, city: 'Mumbai', state: 'Maharashtra', country: 'India', hotelCount: 45, status: 'active', addedDate: '2025-01-15' },
-    { id: 2, city: 'Delhi', state: 'Delhi NCR', country: 'India', hotelCount: 38, status: 'active', addedDate: '2025-01-10' },
-    { id: 3, city: 'Goa', state: 'Goa', country: 'India', hotelCount: 62, status: 'active', addedDate: '2025-01-05' },
-    { id: 4, city: 'Jaipur', state: 'Rajasthan', country: 'India', hotelCount: 28, status: 'active', addedDate: '2025-01-01' },
-    { id: 5, city: 'Udaipur', state: 'Rajasthan', country: 'India', hotelCount: 22, status: 'active', addedDate: '2024-12-20' },
-    { id: 6, city: 'Bangalore', state: 'Karnataka', country: 'India', hotelCount: 35, status: 'active', addedDate: '2024-12-15' },
-    { id: 7, city: 'Chennai', state: 'Tamil Nadu', country: 'India', hotelCount: 18, status: 'inactive', addedDate: '2024-12-10' },
+    { id: 1, city: 'Mumbai', state: 'Maharashtra', country: 'India', hotelCount: 45, addedDate: '2025-01-15' },
+    { id: 2, city: 'Delhi', state: 'Delhi NCR', country: 'India', hotelCount: 38, addedDate: '2025-01-10' },
+    { id: 3, city: 'Goa', state: 'Goa', country: 'India', hotelCount: 62, addedDate: '2025-01-05' },
+    { id: 4, city: 'Jaipur', state: 'Rajasthan', country: 'India', hotelCount: 28, addedDate: '2025-01-01' },
+    { id: 5, city: 'Udaipur', state: 'Rajasthan', country: 'India', hotelCount: 22, addedDate: '2024-12-20' },
+    { id: 6, city: 'Bangalore', state: 'Karnataka', country: 'India', hotelCount: 35, addedDate: '2024-12-15' },
+    { id: 7, city: 'Chennai', state: 'Tamil Nadu', country: 'India', hotelCount: 18, addedDate: '2024-12-10' },
   ]);
 
   const [showModal, setShowModal] = useState(false);
@@ -30,8 +30,7 @@ const LocationManagement = () => {
   const [formData, setFormData] = useState({
     city: '',
     state: '',
-    country: 'India',
-    status: 'active'
+    country: 'India'
   });
 
   const filteredLocations = locations.filter(loc => 
@@ -41,7 +40,7 @@ const LocationManagement = () => {
 
   const openAddModal = () => {
     setEditingLocation(null);
-    setFormData({ city: '', state: '', country: 'India', status: 'active' });
+    setFormData({ city: '', state: '', country: 'India' });
     setShowModal(true);
   };
 
@@ -50,8 +49,7 @@ const LocationManagement = () => {
     setFormData({
       city: location.city,
       state: location.state,
-      country: location.country,
-      status: location.status
+      country: location.country
     });
     setShowModal(true);
   };
@@ -88,7 +86,6 @@ const LocationManagement = () => {
   };
 
   const totalHotels = locations.reduce((sum, loc) => sum + loc.hotelCount, 0);
-  const activeLocations = locations.filter(loc => loc.status === 'active').length;
 
   return (
     <AdminLayout>
@@ -117,7 +114,7 @@ const LocationManagement = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="bg-white dark:bg-gray-800 rounded-2xl border dark:border-gray-700 shadow-lg p-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
@@ -126,17 +123,6 @@ const LocationManagement = () => {
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Total Locations</p>
                   <p className="text-2xl font-bold dark:text-white">{locations.length}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border dark:border-gray-700 shadow-lg p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                  <BuildingOfficeIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Active Locations</p>
-                  <p className="text-2xl font-bold dark:text-white">{activeLocations}</p>
                 </div>
               </div>
             </div>
@@ -173,7 +159,6 @@ const LocationManagement = () => {
                     <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">City</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">State</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">Hotels</th>
-                    <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">Status</th>
                     <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">Added Date</th>
                     <th className="text-right py-4 px-6 text-sm font-semibold text-gray-600 dark:text-gray-300">Actions</th>
                   </tr>
@@ -192,15 +177,6 @@ const LocationManagement = () => {
                       <td className="py-4 px-6 text-gray-600 dark:text-gray-400">{location.state}</td>
                       <td className="py-4 px-6">
                         <span className="font-semibold text-blue-600 dark:text-blue-400">{location.hotelCount}</span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          location.status === 'active'
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                            : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
-                        }`}>
-                          {location.status.toUpperCase()}
-                        </span>
                       </td>
                       <td className="py-4 px-6 text-gray-600 dark:text-gray-400">{location.addedDate}</td>
                       <td className="py-4 px-6">
@@ -273,17 +249,6 @@ const LocationManagement = () => {
                   onChange={(e) => setFormData({...formData, country: e.target.value})}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-yellow-400"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData({...formData, status: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-yellow-400"
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
               </div>
 
               <div className="flex gap-3 pt-4">

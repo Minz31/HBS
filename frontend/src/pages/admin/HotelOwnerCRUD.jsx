@@ -192,22 +192,16 @@ const HotelOwnerCRUD = () => {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border dark:border-gray-700 shadow-lg">
                             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{hotels.length}</p>
                             <p className="text-sm text-gray-600 dark:text-gray-400">Total Hotels</p>
                         </div>
                         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border dark:border-gray-700 shadow-lg">
-                            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{hotels.filter(h => h.status === 'active').length}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Active</p>
-                        </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border dark:border-gray-700 shadow-lg">
-                            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{hotels.filter(h => h.status === 'pending').length}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Pending Approval</p>
-                        </div>
-                        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border dark:border-gray-700 shadow-lg">
-                            <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">{hotels.filter(h => h.status === 'archived').length}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">Archived</p>
+                            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                {hotels.reduce((acc, h) => acc + h.totalRooms, 0)}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Total Rooms</p>
                         </div>
                     </div>
 
@@ -227,14 +221,6 @@ const HotelOwnerCRUD = () => {
                                         alt={hotel.name}
                                         className="w-full h-full object-cover"
                                     />
-                                    <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold ${
-                                        hotel.status === 'active' ? 'bg-green-500 text-white' :
-                                        hotel.status === 'pending' ? 'bg-amber-500 text-white' :
-                                        hotel.status === 'archived' ? 'bg-gray-500 text-white' :
-                                        'bg-red-500 text-white'
-                                    }`}>
-                                        {hotel.status.toUpperCase()}
-                                    </div>
                                     {hotel.rating > 0 && (
                                         <div className="absolute bottom-3 left-3 px-3 py-1 bg-white/90 dark:bg-gray-800/90 rounded-lg text-sm font-bold flex items-center gap-1">
                                             ⭐ {hotel.rating}
@@ -286,25 +272,16 @@ const HotelOwnerCRUD = () => {
                                             <FaEdit className="h-4 w-4" />
                                             Edit
                                         </button>
-                                        {hotel.status === 'archived' ? (
-                                            <button
-                                                onClick={() => handleRestoreHotel(hotel)}
-                                                className="flex items-center justify-center gap-2 px-4 py-2 border border-green-400 text-green-600 dark:text-green-400 rounded-xl font-semibold hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
-                                            >
-                                                Restore
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => {
-                                                    handleSelectHotel(hotel);
-                                                    setShowArchiveModal(true);
-                                                }}
-                                                className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-400 text-gray-600 dark:text-gray-400 rounded-xl font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                                                title="Archive hotel"
-                                            >
-                                                Archive
-                                            </button>
-                                        )}
+                                        <button
+                                            onClick={() => {
+                                                handleSelectHotel(hotel);
+                                                setShowDeleteModal(true);
+                                            }}
+                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-red-400 text-red-600 dark:text-red-400 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                        >
+                                            <FaTrash className="h-4 w-4" />
+                                            Delete
+                                        </button>
                                     </div>
                                 </div>
                             </div>

@@ -67,9 +67,7 @@ const AdminLayout = ({ children }) => {
         { path: '/admin/approvals', label: 'Hotel Approvals', icon: FaCheckCircle },
         { path: '/admin/hotels', label: 'All Hotels', icon: FaHotel },
         { path: '/admin/customers', label: 'Customers', icon: FaUsers },
-        { path: '/admin/locations', label: 'Locations', icon: FaMapMarkerAlt },
         { path: '/admin/analytics', label: 'Analytics', icon: FaChartPie },
-        { path: '/admin/settings', label: 'Settings', icon: FaCog },
     ];
 
     const isActive = (path) => location.pathname === path;
