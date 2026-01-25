@@ -19,14 +19,6 @@ const HotelierDashboard = () => {
     // Mock data
     const stats = [
         {
-            label: 'Total Revenue',
-            value: '$45,231',
-            change: '+12.5%',
-            trend: 'up',
-            icon: FaDollarSign,
-            gradient: 'from-emerald-500 to-teal-600',
-        },
-        {
             label: 'Total Bookings',
             value: '342',
             change: '+8.2%',
@@ -41,14 +33,6 @@ const HotelierDashboard = () => {
             trend: 'down',
             icon: FaHotel,
             gradient: 'from-purple-500 to-pink-600',
-        },
-        {
-            label: 'Avg. Rating',
-            value: '4.7',
-            change: '+0.3',
-            trend: 'up',
-            icon: FaStar,
-            gradient: 'from-amber-500 to-orange-600',
         },
     ];
 
@@ -119,7 +103,7 @@ const HotelierDashboard = () => {
                     </div>
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         {stats.map((stat, index) => {
                             const Icon = stat.icon;
                             const TrendIcon = stat.trend === 'up' ? FaArrowUp : FaArrowDown;
@@ -152,46 +136,19 @@ const HotelierDashboard = () => {
 
                     {/* Charts and Recent Activity */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                        {/* Revenue Chart */}
                         <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Revenue Overview</h2>
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Quick Actions</h2>
                                 <FaChartBar className="h-6 w-6 text-blue-500" />
                             </div>
-                            <div className="h-64 flex items-end justify-between gap-2">
-                                {monthlyData.map((data, index) => {
-                                    const maxRevenue = Math.max(...monthlyData.map(d => d.revenue));
-                                    const height = (data.revenue / maxRevenue) * 100;
-                                    return (
-                                        <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                                            <div className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg shadow-lg hover:shadow-xl transition-all cursor-pointer relative group"
-                                                style={{ height: `${height}%` }}>
-                                                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                                    ${(data.revenue / 1000).toFixed(0)}k
-                                                </div>
-                                            </div>
-                                            <span className="text-xs text-gray-600 dark:text-gray-400 font-semibold">{data.month}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Quick Actions */}
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Quick Actions</h2>
-                            <div className="space-y-3">
-                                <button className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition-all">
-                                    + Add New Room
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <button className="px-4 py-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition-all flex flex-col items-center gap-3">
+                                    <FaHotel className="h-8 w-8" />
+                                    <span>Manage Rooms</span>
                                 </button>
-                                <button className="w-full px-4 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-yellow-500/30 transition-all">
-                                    + Create Booking
-                                </button>
-                                <button className="w-full px-4 py-3 border-2 border-blue-500 text-blue-600 dark:text-blue-400 rounded-xl font-semibold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
-                                    Update Pricing
-                                </button>
-                                <button className="w-full px-4 py-3 border-2 border-yellow-400 text-yellow-600 dark:text-yellow-400 rounded-xl font-semibold hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all">
-                                    View Reports
+                                <button className="px-4 py-6 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-yellow-500/30 transition-all flex flex-col items-center gap-3">
+                                    <FaCalendarAlt className="h-8 w-8" />
+                                    <span>Manage Bookings</span>
                                 </button>
                             </div>
                         </div>
@@ -217,7 +174,7 @@ const HotelierDashboard = () => {
                                             <p className="text-xs text-gray-500 dark:text-gray-500">{booking.checkIn}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-bold text-gray-900 dark:text-white">{booking.amount}</p>
+                                            <p className="font-bold text-gray-900 dark:text-white">Confirmed</p>
                                             <span className={`text-xs px-2 py-1 rounded-full ${booking.status === 'Confirmed'
                                                 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                                                 : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'

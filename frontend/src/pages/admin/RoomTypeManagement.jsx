@@ -19,7 +19,6 @@ const RoomTypeManagement = () => {
       type: 'AC',
       beds: '2 Single Beds',
       capacity: 2,
-      price: 4500,
       available: 10,
       total: 15,
       amenities: ['AC', 'WiFi', 'TV', 'Mini Bar'],
@@ -31,7 +30,6 @@ const RoomTypeManagement = () => {
       type: 'AC',
       beds: '1 King Bed',
       capacity: 2,
-      price: 8500,
       available: 5,
       total: 8,
       amenities: ['AC', 'WiFi', 'TV', 'Mini Bar', 'Jacuzzi'],
@@ -43,7 +41,6 @@ const RoomTypeManagement = () => {
       type: 'Non-AC',
       beds: '2 Single Beds',
       capacity: 2,
-      price: 2500,
       available: 8,
       total: 12,
       amenities: ['Fan', 'WiFi', 'TV'],
@@ -55,7 +52,6 @@ const RoomTypeManagement = () => {
       type: 'AC',
       beds: '2 Double Beds',
       capacity: 4,
-      price: 7500,
       available: 3,
       total: 5,
       amenities: ['AC', 'WiFi', 'TV', 'Mini Bar', 'Extra Space'],
@@ -73,7 +69,6 @@ const RoomTypeManagement = () => {
     type: 'AC',
     beds: '2 Single Beds',
     capacity: 2,
-    price: 0,
     total: 0,
     amenities: [],
     description: ''
@@ -89,7 +84,6 @@ const RoomTypeManagement = () => {
       type: 'AC',
       beds: '2 Single Beds',
       capacity: 2,
-      price: 0,
       total: 0,
       amenities: [],
       description: ''
@@ -231,13 +225,7 @@ const RoomTypeManagement = () => {
                         <span className="text-green-600 dark:text-green-400">{room.available}</span> / {room.total}
                       </p>
                     </div>
-                    <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-xl p-3 border border-yellow-200 dark:border-yellow-700">
-                      <p className="text-xs text-yellow-700 dark:text-yellow-400">Price/Night</p>
-                      <p className="font-bold text-yellow-700 dark:text-yellow-400 flex items-center">
-                        <CurrencyRupeeIcon className="h-4 w-4" />
-                        {room.price.toLocaleString()}
-                      </p>
-                    </div>
+
                   </div>
 
                   <div className="flex flex-wrap gap-2">
@@ -336,17 +324,7 @@ const RoomTypeManagement = () => {
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-yellow-400"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price/Night *</label>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: parseInt(e.target.value)})}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-yellow-400"
-                  />
-                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Rooms *</label>
                   <input

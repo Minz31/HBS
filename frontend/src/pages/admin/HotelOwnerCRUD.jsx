@@ -34,12 +34,11 @@ const HotelOwnerCRUD = () => {
             address: '123 Marine Drive, Mumbai',
             totalRooms: 85,
             availableRooms: 42,
-            priceRange: '₹5,000 - ₹25,000',
             rating: 4.5,
             status: 'active',
             activeBookings: 3,
             image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=60',
-            amenities: ['WiFi', 'Pool', 'Parking', 'Restaurant', 'Spa'],
+            amenities: 'WiFi, Pool, Parking, Restaurant, Spa',
             description: 'Luxury beachfront hotel with stunning views of the Arabian Sea.',
         },
         {
@@ -49,12 +48,11 @@ const HotelOwnerCRUD = () => {
             address: 'Mall Road, Shimla',
             totalRooms: 45,
             availableRooms: 28,
-            priceRange: '₹3,500 - ₹12,000',
             rating: 4.3,
             status: 'active',
             activeBookings: 0,
             image: 'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=800&q=60',
-            amenities: ['WiFi', 'Restaurant', 'Room Service', 'Heating'],
+            amenities: 'WiFi, Restaurant, Room Service, Heating',
             description: 'Cozy mountain retreat with panoramic views of the Himalayas.',
         },
     ]);
@@ -65,18 +63,11 @@ const HotelOwnerCRUD = () => {
         location: '',
         address: '',
         totalRooms: '',
-        priceRange: '',
         description: '',
-        amenities: [],
+        amenities: '',
     });
 
-    const allAmenities = [
-        { id: 'wifi', name: 'WiFi', icon: FaWifi },
-        { id: 'pool', name: 'Pool', icon: FaSwimmingPool },
-        { id: 'parking', name: 'Parking', icon: FaParking },
-        { id: 'restaurant', name: 'Restaurant', icon: FaUtensils },
-        { id: 'spa', name: 'Spa', icon: FaBed },
-    ];
+
 
     // Handle input change
     const handleInputChange = (e) => {
@@ -84,15 +75,7 @@ const HotelOwnerCRUD = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // Toggle amenity
-    const toggleAmenity = (amenityName) => {
-        setFormData(prev => ({
-            ...prev,
-            amenities: prev.amenities.includes(amenityName)
-                ? prev.amenities.filter(a => a !== amenityName)
-                : [...prev.amenities, amenityName]
-        }));
-    };
+
 
     // CREATE - Add new hotel
     const handleAddHotel = () => {
@@ -106,7 +89,7 @@ const HotelOwnerCRUD = () => {
             image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=60',
         };
         setHotels(prev => [...prev, newHotel]);
-        setFormData({ name: '', location: '', address: '', totalRooms: '', priceRange: '', description: '', amenities: [] });
+        setFormData({ name: '', location: '', address: '', totalRooms: '', description: '', amenities: '' });
         setShowAddModal(false);
     };
 
@@ -241,23 +224,13 @@ const HotelOwnerCRUD = () => {
                                             <FaBed className="text-blue-500" />
                                             {hotel.totalRooms} Rooms ({hotel.availableRooms} available)
                                         </p>
-                                        <p className="font-semibold text-gray-900 dark:text-white">
-                                            {hotel.priceRange}
-                                        </p>
                                     </div>
 
                                     {/* Amenities */}
-                                    <div className="flex flex-wrap gap-2 mb-4">
-                                        {hotel.amenities.slice(0, 4).map((amenity, idx) => (
-                                            <span key={idx} className="px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-xs">
-                                                {amenity}
-                                            </span>
-                                        ))}
-                                        {hotel.amenities.length > 4 && (
-                                            <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-xs">
-                                                +{hotel.amenities.length - 4} more
-                                            </span>
-                                        )}
+                                    <div className="mb-4">
+                                        <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold truncate">
+                                            {hotel.amenities}
+                                        </p>
                                     </div>
 
                                     {/* Actions */}
@@ -371,34 +344,18 @@ const HotelOwnerCRUD = () => {
                                 />
                             </div>
 
-                            {/* Total Rooms & Price */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                        Total Rooms *
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="totalRooms"
-                                        value={formData.totalRooms}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                        placeholder="e.g., 50"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                        Price Range
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="priceRange"
-                                        value={formData.priceRange}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                        placeholder="e.g., ₹5,000 - ₹15,000"
-                                    />
-                                </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Total Rooms *
+                                </label>
+                                <input
+                                    type="number"
+                                    name="totalRooms"
+                                    value={formData.totalRooms}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                    placeholder="e.g., 50"
+                                />
                             </div>
 
                             {/* Description */}
@@ -419,28 +376,16 @@ const HotelOwnerCRUD = () => {
                             {/* Amenities */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                    Amenities
+                                    Amenities (separate by commas)
                                 </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {allAmenities.map((amenity) => {
-                                        const Icon = amenity.icon;
-                                        return (
-                                            <button
-                                                key={amenity.id}
-                                                type="button"
-                                                onClick={() => toggleAmenity(amenity.name)}
-                                                className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${
-                                                    formData.amenities.includes(amenity.name)
-                                                        ? 'bg-blue-600 text-white border-blue-600'
-                                                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-400'
-                                                }`}
-                                            >
-                                                <Icon className="h-4 w-4" />
-                                                {amenity.name}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                <textarea
+                                    name="amenities"
+                                    value={formData.amenities}
+                                    onChange={handleInputChange}
+                                    rows={3}
+                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white resize-none"
+                                    placeholder="e.g., WiFi, Pool, Restaurant, Spa, Room Service..."
+                                />
                             </div>
                         </div>
 
@@ -523,31 +468,17 @@ const HotelOwnerCRUD = () => {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                        Total Rooms *
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="totalRooms"
-                                        value={formData.totalRooms}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                        Price Range
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="priceRange"
-                                        value={formData.priceRange}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                    />
-                                </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Total Rooms *
+                                </label>
+                                <input
+                                    type="number"
+                                    name="totalRooms"
+                                    value={formData.totalRooms}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                />
                             </div>
 
                             <div>
@@ -565,28 +496,15 @@ const HotelOwnerCRUD = () => {
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                    Amenities
+                                    Amenities (separate by commas)
                                 </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {allAmenities.map((amenity) => {
-                                        const Icon = amenity.icon;
-                                        return (
-                                            <button
-                                                key={amenity.id}
-                                                type="button"
-                                                onClick={() => toggleAmenity(amenity.name)}
-                                                className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${
-                                                    formData.amenities.includes(amenity.name)
-                                                        ? 'bg-blue-600 text-white border-blue-600'
-                                                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-400'
-                                                }`}
-                                            >
-                                                <Icon className="h-4 w-4" />
-                                                {amenity.name}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                                <textarea
+                                    name="amenities"
+                                    value={formData.amenities}
+                                    onChange={handleInputChange}
+                                    rows={3}
+                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white resize-none"
+                                />
                             </div>
                         </div>
 

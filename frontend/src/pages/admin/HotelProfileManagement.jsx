@@ -33,16 +33,9 @@ const HotelProfileManagement = () => {
         checkOutTime: '11:00 AM',
     });
 
-    const [amenities, setAmenities] = useState([
-        { id: 1, name: 'Free WiFi', icon: FaWifi, selected: true },
-        { id: 2, name: 'Swimming Pool', icon: FaFire, selected: true },
-        { id: 3, name: 'Fitness Center', icon: FaBolt, selected: true },
-        { id: 4, name: 'Spa & Wellness', icon: FaStar, selected: true },
-        { id: 5, name: 'Restaurant', icon: FaFire, selected: true },
-        { id: 6, name: 'Room Service', icon: FaTv, selected: true },
-        { id: 7, name: 'Bar/Lounge', icon: FaFire, selected: false },
-        { id: 8, name: 'Conference Rooms', icon: FaBuilding, selected: true },
-    ]);
+    const [amenities, setAmenities] = useState(
+        'Free WiFi, Swimming Pool, Fitness Center, Spa & Wellness, Restaurant, Room Service, Conference Rooms'
+    );
 
     const [images, setImages] = useState([
         { id: 1, url: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=60', type: 'main' },
@@ -58,10 +51,8 @@ const HotelProfileManagement = () => {
         setHotelData({ ...hotelData, [e.target.name]: e.target.value });
     };
 
-    const toggleAmenity = (id) => {
-        setAmenities(amenities.map(amenity =>
-            amenity.id === id ? { ...amenity, selected: !amenity.selected } : amenity
-        ));
+    const handleAmenitiesChange = (e) => {
+        setAmenities(e.target.value);
     };
 
     // Image upload handler
@@ -351,28 +342,20 @@ const HotelProfileManagement = () => {
                             <div className="space-y-6">
                                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Hotel Amenities</h2>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {amenities.map((amenity) => {
-                                        const Icon = amenity.icon;
-                                        return (
-                                            <button
-                                                key={amenity.id}
-                                                onClick={() => toggleAmenity(amenity.id)}
-                                                className={`relative p-4 rounded-xl border-2 transition-all ${amenity.selected
-                                                    ? 'border-indigo-500 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20'
-                                                    : 'border-gray-200 dark:border-slate-600 hover:border-gray-300'
-                                                    }`}
-                                            >
-                                                {amenity.selected && (
-                                                    <FaCheckCircle className="absolute top-2 right-2 h-6 w-6 text-indigo-600" />
-                                                )}
-                                                <Icon className={`h-8 w-8 mb-2 ${amenity.selected ? 'text-indigo-600' : 'text-gray-400'}`} />
-                                                <p className={`font-semibold ${amenity.selected ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
-                                                    {amenity.name}
-                                                </p>
-                                            </button>
-                                        );
-                                    })}
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                        Describe available amenities (separate by commas)
+                                    </label>
+                                    <textarea
+                                        value={amenities}
+                                        onChange={handleAmenitiesChange}
+                                        rows="8"
+                                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-indigo-500 transition-all font-medium"
+                                        placeholder="e.g. Free WiFi, Swimming Pool, Spa, 24/7 Room Service..."
+                                    />
+                                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 italic">
+                                        * Enter your amenities as a list or a short description. These will be shown to guests during booking.
+                                    </p>
                                 </div>
                             </div>
                         )}

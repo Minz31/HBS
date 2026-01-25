@@ -25,15 +25,10 @@ const OwnerNavigation = ({ isCollapsed, setIsCollapsed }) => {
     const { hotels, selectedHotel, selectHotel } = useHotel();
 
     const navItems = [
-        { path: '/owner/dashboard', label: 'Dashboard', icon: FaChartBar },
         { path: '/owner/hotel-profile', label: 'Hotel Profile', icon: FaHotel },
         { path: '/owner/rooms', label: 'Rooms', icon: FaBed },
         { path: '/owner/room-types', label: 'Room Types', icon: FaBed },
         { path: '/owner/bookings', label: 'Bookings', icon: FaCalendarAlt },
-        { path: '/owner/pricing', label: 'Pricing', icon: FaMoneyBillWave },
-        { path: '/owner/reviews', label: 'Reviews', icon: FaStar },
-        { path: '/owner/revenue', label: 'Revenue', icon: FaChartPie },
-        { path: '/owner/settings', label: 'Settings', icon: FaCog },
     ];
 
     const isActive = (path) => location.pathname === path;

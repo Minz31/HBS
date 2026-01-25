@@ -15,12 +15,12 @@ import OwnerLayout from '../../layouts/OwnerLayout';
 
 const RoomManagement = () => {
     const [rooms, setRooms] = useState([
-        { id: 1, number: '101', type: 'Deluxe Suite', capacity: 2, price: 450, status: 'Available', floor: 1, beds: '1 King Bed', size: '450 sq ft' },
-        { id: 2, number: '102', type: 'Standard Room', capacity: 2, price: 220, status: 'Occupied', floor: 1, beds: '2 Single Beds', size: '300 sq ft' },
-        { id: 3, number: '201', type: 'Premium Suite', capacity: 4, price: 680, status: 'Available', floor: 2, beds: '1 King + 1 Queen', size: '600 sq ft' },
-        { id: 4, number: '202', type: 'Family Room', capacity: 4, price: 390, status: 'Maintenance', floor: 2, beds: '2 Queen Beds', size: '500 sq ft' },
-        { id: 5, number: '301', type: 'Executive Suite', capacity: 2, price: 850, status: 'Available', floor: 3, beds: '1 King Bed', size: '700 sq ft' },
-        { id: 6, number: '302', type: 'Standard Room', capacity: 2, price: 220, status: 'Available', floor: 3, beds: '1 Queen Bed', size: '300 sq ft' },
+        { id: 1, number: '101', type: 'Deluxe Suite', capacity: 2, status: 'Available', floor: 1, beds: '1 King Bed', size: '450 sq ft' },
+        { id: 2, number: '102', type: 'Standard Room', capacity: 2, status: 'Occupied', floor: 1, beds: '2 Single Beds', size: '300 sq ft' },
+        { id: 3, number: '201', type: 'Premium Suite', capacity: 4, status: 'Available', floor: 2, beds: '1 King + 1 Queen', size: '600 sq ft' },
+        { id: 4, number: '202', type: 'Family Room', capacity: 4, status: 'Maintenance', floor: 2, beds: '2 Queen Beds', size: '500 sq ft' },
+        { id: 5, number: '301', type: 'Executive Suite', capacity: 2, status: 'Available', floor: 3, beds: '1 King Bed', size: '700 sq ft' },
+        { id: 6, number: '302', type: 'Standard Room', capacity: 2, status: 'Available', floor: 3, beds: '1 Queen Bed', size: '300 sq ft' },
     ]);
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -31,7 +31,6 @@ const RoomManagement = () => {
         number: '',
         type: 'Standard Room',
         capacity: 2,
-        price: 0,
         status: 'Available',
         floor: 1,
         beds: '',
@@ -78,7 +77,6 @@ const RoomManagement = () => {
             number: '',
             type: 'Standard Room',
             capacity: 2,
-            price: 0,
             status: 'Available',
             floor: 1,
             beds: '',
@@ -201,11 +199,6 @@ const RoomManagement = () => {
                                             <FaBed className="h-5 w-5 text-yellow-500" />
                                             <span>{room.beds} • {room.size}</span>
                                         </div>
-                                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                            <FaDollarSign className="h-5 w-5 text-blue-500" />
-                                            <span className="text-lg font-bold text-blue-600">${room.price}</span>
-                                            <span className="text-gray-500">/ night</span>
-                                        </div>
                                     </div>
 
                                     {/* Actions */}
@@ -316,19 +309,7 @@ const RoomManagement = () => {
                                             />
                                         </div>
 
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                                Price per Night *
-                                            </label>
-                                            <input
-                                                type="number"
-                                                name="price"
-                                                value={formData.price}
-                                                onChange={handleInputChange}
-                                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-blue-500 transition-all"
-                                                min="0"
-                                            />
-                                        </div>
+
 
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
