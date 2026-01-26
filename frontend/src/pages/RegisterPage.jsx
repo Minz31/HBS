@@ -1,36 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-
-// Mock API and Auth (Temporary fix)
-const authAPI = {
-  register: async (data) => {
-    console.log("Register with:", data);
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve({
-                data: {
-                    data: {
-                        user: { ...data, role: 'user' },
-                        token: 'fake-token-456'
-                    }
-                }
-            });
-        }, 1000);
-    });
-  }
-};
-
-const setAuth = (user, token) => {
-    console.log("Auth Set:", user, token);
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-};
+import api from '../services/api';
 
 const RegisterPage = () => {
     const [formData, setFormData] = useState({
-        first_name: '',
-        last_name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         password: '',
         phone: ''
@@ -48,11 +24,12 @@ const RegisterPage = () => {
         setLoading(true);
 
         try {
-            const { data } = await authAPI.register(formData);
-            setAuth(data.data, data.data.token);
+            const response = await api.post('/users/signup', formData);
+            console.log('Registration successful:', response.data);
             toast.success('Account created successfully!');
-            navigate('/dashboard');
+            navigate('/'); // Redirect to home page
         } catch (error) {
+            console.error('Registration error:', error);
             toast.error(error.response?.data?.message || 'Registration failed');
         } finally {
             setLoading(false);
@@ -72,10 +49,10 @@ const RegisterPage = () => {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <input
-                                name="first_name"
+                                name="firstName"
                                 type="text"
                                 required
-                                value={formData.first_name}
+                                value={formData.firstName}
                                 onChange={handleChange}
                                 className="input-field"
                                 placeholder="First Name"
@@ -83,10 +60,10 @@ const RegisterPage = () => {
                         </div>
                         <div>
                             <input
-                                name="last_name"
+                                name="lastName"
                                 type="text"
                                 required
-                                value={formData.last_name}
+                                value={formData.lastName}
                                 onChange={handleChange}
                                 className="input-field"
                                 placeholder="Last Name"

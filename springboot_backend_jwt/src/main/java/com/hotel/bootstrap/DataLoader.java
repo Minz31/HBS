@@ -20,7 +20,7 @@ import com.hotel.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Component
+// @Component - Disabled to use existing database users
 @RequiredArgsConstructor
 @Slf4j
 public class DataLoader implements CommandLineRunner {
@@ -43,21 +43,15 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private void loadInitialData() {
-        log.info("Loading initial data...");
+        log.info("Loading minimal test data...");
 
-        // Create users
-        List<User> users = createUsers();
-        userRepository.saveAll(users);
-
-        // Create hotels
-        List<Hotel> hotels = createHotels();
-        hotelRepository.saveAll(hotels);
-
-        // Create room types
-        List<RoomType> roomTypes = createRoomTypes(hotels);
-        roomTypeRepository.saveAll(roomTypes);
-
-        log.info("Initial data loaded successfully");
+        // Create only one test user
+        User testUser = new User("Test", "User", "test@test.com", 
+                passwordEncoder.encode("test123"), LocalDate.of(1990, 1, 1), 0, "1234567890");
+        testUser.setUserRole(UserRole.ROLE_CUSTOMER);
+        
+        userRepository.save(testUser);
+        log.info("Test user created: test@test.com / test123");
     }
 
     private List<User> createUsers() {

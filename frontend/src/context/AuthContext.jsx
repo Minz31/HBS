@@ -1,34 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import api from '../services/api';
 
 const AuthContext = createContext(null);
-
-// Hardcoded users for testing
-const HARDCODED_USERS = [
-  {
-    id: 1,
-    email: 'user@stays.in',
-    password: 'password123',
-    name: 'Aadesh31',
-    role: 'user',
-    avatar: null
-  },
-  {
-    id: 2,
-    email: 'admin@stays.in',
-    password: 'admin123',
-    name: 'Admin User',
-    role: 'admin',
-    avatar: null
-  },
-  {
-    id: 3,
-    email: 'owner@stays.in',
-    password: 'owner123',
-    name: 'Hotel Owner',
-    role: 'owner',
-    avatar: null
-  }
-];
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
@@ -44,27 +17,46 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
 
-  // Login function with hardcoded credentials
+  // Login function using backend API
   const login = async (email, password) => {
-    // Find user in hardcoded list
-    const foundUser = HARDCODED_USERS.find(
-      u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
-      const fakeToken = `token_${foundUser.id}_${Date.now()}`;
+    try {
+      setLoading(true);
+      const response = await api.post('/users/signin', { email, password });
       
-      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-      localStorage.setItem('token', fakeToken);
+      // Check if response has token (backend returns AuthResp with jwt and message fields)
+      const token = response.jwt || response.token;
       
-      setUser(userWithoutPassword);
-      setIsAuthenticated(true);
+      if (token && token.trim().length > 0) {
+        // Validate token format (should have at least 2 dots for JWT)
+        if (!token.includes('.')) {
+          console.error('Invalid token format received');
+          return { success: false, error: 'Invalid token received from server' };
+        }
+        
+        localStorage.setItem('token', token);
+        
+        // Extract user info from token or use email
+        const userInfo = {
+          email: email,
+          name: response.name || email.split('@')[0] || 'User',
+          role: response.role || response.userRole || 'user'
+        };
+        
+        localStorage.setItem('user', JSON.stringify(userInfo));
+        setUser(userInfo);
+        setIsAuthenticated(true);
+        
+        return { success: true, user: userInfo };
+      }
       
-      return { success: true, user: userWithoutPassword };
+      return { success: false, error: 'Login failed: No token received' };
+    } catch (error) {
+      console.error('Login error:', error);
+      const errorMessage = error.message || 'Invalid email or password';
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
     }
-
-    return { success: false, error: 'Invalid email or password' };
   };
 
   // Logout function

@@ -28,21 +28,16 @@ public class JwtUtils {
         secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    // create JWT - header , payload, signature
-    public String generateToken(UserPrincipal principal) {
-        // iat
+    public String generateToken(String email, String role, Long userId) {
         Date now = new Date();
-        // exp
         Date expiresAt = new Date(now.getTime() + jwtExpirationTime);
-        return Jwts.builder() // creates a builder fro JWT creation
-                .subject(principal.getEmail()) // setting subject
-                .issuedAt(now) // iat
-                .expiration(expiresAt) // exp
-                // custom claims - user id & user role
-                .claims(Map.of("user_id", principal.getUserId(), "user_role", principal.getUserRole()))
-                .signWith(secretKey)// sign the JWT
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(now)
+                .expiration(expiresAt)
+                .claims(Map.of("user_id", userId, "user_role", role))
+                .signWith(secretKey)
                 .compact();
-
     }
 
     public String getUserNameFromJwtToken(String token) {

@@ -26,4 +26,6 @@ public interface UserService {
     AuthResp authenticate(AuthRequest request);
 
     ApiResponse encryptPasswords();
+
+    void resetPassword(String email, String newPassword);
 }

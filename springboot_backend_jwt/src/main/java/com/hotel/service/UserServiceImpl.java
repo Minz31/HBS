@@ -18,6 +18,7 @@ import com.hotel.dtos.UserRegDTO;
 import com.hotel.entities.User;
 import com.hotel.entities.UserRole;
 import com.hotel.repository.UserRepository;
+import com.hotel.security.JwtUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,10 +28,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService {
-    
+
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
 
     @Override
     public List<UserDTO> getAllUsers() {
@@ -44,29 +46,42 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO registerUser(UserRegDTO dto) {
         log.info("Registering new user with email: {}", dto.getEmail());
-        
-        if (userRepository.existsByEmailOrPhone(dto.getEmail(), dto.getPhone())) {
-            throw new InvalidInputException("User already exists with this email or phone");
+
+        try {
+            // Check if user exists by email only (phone can be null)
+            if (userRepository.existsByEmail(dto.getEmail())) {
+                throw new InvalidInputException("User already exists with this email");
+            }
+
+            User user = modelMapper.map(dto, User.class);
+            user.setUserRole(UserRole.ROLE_CUSTOMER);
+
+            // Encode password before saving
+            String rawPassword = user.getPassword();
+            String encodedPassword = passwordEncoder.encode(rawPassword);
+            user.setPassword(encodedPassword);
+
+            log.info("Registering user - Email: {}, Password encoded: {}", dto.getEmail(),
+                    encodedPassword.length() > 0);
+
+            User savedUser = userRepository.save(user);
+            log.info("User registered successfully with ID: {}, Email: {}", savedUser.getId(), savedUser.getEmail());
+
+            return modelMapper.map(savedUser, UserDTO.class);
+        } catch (Exception e) {
+            log.error("Error registering user: {}", dto.getEmail(), e);
+            throw e;
         }
-        
-        User user = modelMapper.map(dto, User.class);
-        user.setUserRole(UserRole.ROLE_CUSTOMER);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        
-        User savedUser = userRepository.save(user);
-        log.info("User registered successfully with ID: {}", savedUser.getId());
-        
-        return modelMapper.map(savedUser, UserDTO.class);
     }
 
     @Override
     public String addUser(User user) {
         log.info("Adding new user: {}", user.getEmail());
-        
+
         if (userRepository.existsByEmailOrPhone(user.getEmail(), user.getPhone())) {
             throw new InvalidInputException("User already exists with this email or phone");
         }
-        
+
         User savedUser = userRepository.save(user);
         return "New User added with ID=" + savedUser.getId();
     }
@@ -74,11 +89,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public ApiResponse deleteUserDetails(Long userId) {
         log.info("Deleting user with ID: {}", userId);
-        
+
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with ID: " + userId);
         }
-        
+
         userRepository.deleteById(userId);
         return new ApiResponse("Success", "User deleted successfully");
     }
@@ -93,38 +108,66 @@ public class UserServiceImpl implements UserService {
     @Override
     public ApiResponse updateDetails(Long id, User user) {
         log.info("Updating user with ID: {}", id);
-        
+
         User existingUser = getUserDetails(id);
-        
+
         existingUser.setDob(user.getDob());
         existingUser.setFirstName(user.getFirstName());
         existingUser.setLastName(user.getLastName());
         existingUser.setPassword(user.getPassword());
         existingUser.setRegAmount(user.getRegAmount());
-        
+
         return new ApiResponse("Success", "User updated successfully");
     }
 
     @Override
     public AuthResp authenticate(AuthRequest request) {
         log.info("Authenticating user: {}", request.getEmail());
-        
-        User user = userRepository.findByEmailAndPassword(request.getEmail(), request.getPassword())
-                .orElseThrow(() -> new AuthenticationFailedException("Invalid email or password"));
-        
-        AuthResp response = modelMapper.map(user, AuthResp.class);
-        response.setMessage("Login successful");
-        
-        return response;
+
+        try {
+            // Find user by email first
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new AuthenticationFailedException("Invalid email or password"));
+
+            log.info("User found: {}, stored password: {}", user.getEmail(), user.getPassword());
+            log.info("Input password: {}", request.getPassword());
+
+            // Password is already hashed (length 60 = BCrypt), use proper matching
+            boolean matches = passwordEncoder.matches(request.getPassword(), user.getPassword());
+            log.info("BCrypt password matches: {}", matches);
+
+            if (!matches) {
+                throw new AuthenticationFailedException("Invalid email or password");
+            }
+
+            // Generate JWT token
+            String jwtToken = jwtUtils.generateToken(user.getEmail(), user.getUserRole().name(), user.getId());
+
+            return new AuthResp(jwtToken, "Login successful");
+        } catch (Exception e) {
+            log.error("Authentication failed for user: {}", request.getEmail(), e);
+            throw new AuthenticationFailedException("Invalid email or password");
+        }
     }
 
     @Override
     public ApiResponse encryptPasswords() {
         log.info("Encrypting all user passwords");
-        
+
         List<User> users = userRepository.findAll();
         users.forEach(user -> user.setPassword(passwordEncoder.encode(user.getPassword())));
-        
+
         return new ApiResponse("Success", "All passwords encrypted successfully");
+    }
+
+    @Override
+    public void resetPassword(String email, String newPassword) {
+        log.info("Resetting password for user: {}", email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("Password reset successfully for user: {}", email);
     }
 }

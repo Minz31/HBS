@@ -30,7 +30,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ") && authHeader.length() > 7) {
             // 2. extract jwt
-            String jwt = authHeader.substring(7);
+            String jwt = authHeader.substring(7).trim();
+            // 2.5. Check if token is not empty and has proper JWT format (contains at least 2 dots)
+            if (jwt.isEmpty() || !jwt.contains(".")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             // 3. validate jwt
             if (jwtUtils.validateJwtToken(jwt)) {
                 // 4. get username from jwt
