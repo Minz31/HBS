@@ -2,6 +2,7 @@ import SearchBar from "../components/SearchBar";
 import { useAuth } from '../context/AuthContext';
 import PopularSearches from "../components/PopularSearches";
 import RecentlyViewedHotels from "../components/RecentlyViewedHotels";
+import ConnectionTest from "../components/ConnectionTest";
 
 function Home() {
   const { isAuthenticated, user } = useAuth();
@@ -9,6 +10,11 @@ function Home() {
   return (
     <div className="min-h-screen pt-20 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Connection Test */}
+        <div className="mb-6">
+          <ConnectionTest />
+        </div>
+
         {/* Personalized Greeting */}
         <h1 className="text-3xl font-bold text-center md:text-left dark:text-white transition-colors">
           {isAuthenticated
@@ -35,4 +41,3 @@ function Home() {
 };
 
 export default Home;
-

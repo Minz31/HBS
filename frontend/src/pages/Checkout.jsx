@@ -11,7 +11,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { useAuth } from "../context/AuthContext";
 
-import { calculateNights, currency } from "../utils/bookingUtils";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { calculateNights, currency, downloadInvoice } from "../utils/bookingUtils";
+
+
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -109,6 +112,29 @@ const Checkout = () => {
               <p className="text-sm text-gray-600 dark:text-gray-400">Booking Reference</p>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">HBS-{Date.now().toString().slice(-8)}</p>
             </div>
+
+            <div className="mb-8">
+              <button
+                onClick={() => {
+                   // Create a temporary booking object for the invoice
+                   const bookingForInvoice = {
+                     id: Date.now().toString().slice(-8),
+                     hotel: cartItems[0]?.hotel,
+                     checkIn: cartItems[0]?.checkIn,
+                     checkOut: cartItems[0]?.checkOut,
+                     roomType: cartItems[0]?.roomType,
+                     price: total,
+                     guestDetails: guestDetails
+                   };
+                   downloadInvoice(bookingForInvoice);
+                }}
+                className="flex items-center justify-center gap-2 mx-auto px-6 py-3 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-xl font-semibold hover:bg-blue-200 dark:hover:bg-blue-900/50 transition"
+              >
+                <ArrowDownTrayIcon className="h-5 w-5" />
+                Download Invoice
+              </button>
+            </div>
+
             <div className="flex gap-4 justify-center">
               <Link
                 to="/bookings"

@@ -59,3 +59,51 @@ export const getCappedPrice = (hotelName, targetPrice) => {
   }
   return targetPrice;
 };
+
+/**
+ * Triggers PDF download for a booking invoice
+ * @param {object} booking 
+ */
+export const downloadInvoice = async (booking) => {
+  try {
+    const bookingDate = new Date(booking.checkIn);
+    const checkoutDate = new Date(booking.checkOut);
+    
+    // Map booking object to .NET InvoiceRequest
+    const invoiceRequest = {
+      guestName: booking.guestDetails?.firstName ? `${booking.guestDetails.firstName} ${booking.guestDetails.lastName}` : "Guest",
+      hotelName: booking.hotel || "Hotel Name",
+      roomType: booking.roomType || "Standard Room",
+      checkInDate: bookingDate.toISOString(),
+      checkOutDate: checkoutDate.toISOString(),
+      totalPrice: booking.price || 0,
+      bookingReference: booking.id ? `HB-${booking.id}` : "REF-000"
+    };
+
+    const response = await fetch('http://localhost:5000/api/invoice/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(invoiceRequest),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to generate invoice');
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Invoice_${invoiceRequest.bookingReference}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+  } catch (error) {
+    console.error('Error downloading invoice:', error);
+    alert('Failed to download invoice. Please make sure the Invoice Service is running (dotnet run).');
+  }
+};

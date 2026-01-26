@@ -9,13 +9,15 @@ import {
   CheckCircleIcon,
   ClockIcon,
   PencilIcon,
-  StarIcon
+  StarIcon,
+  ArrowDownTrayIcon
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { FaTicketAlt, FaStar } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import { useReviews } from "../context/ReviewsContext";
 import AccountLayout from "../components/AccountLayout";
+import { downloadInvoice } from "../utils/bookingUtils";
 
 const currency = (v) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
@@ -402,6 +404,15 @@ const Bookings = () => {
 
                       {/* Actions */}
                       <div className="flex gap-2 flex-wrap">
+                        {/* Download Invoice */}
+                        <button
+                          onClick={() => downloadInvoice(booking)}
+                          className="flex items-center gap-2 px-4 py-2 border border-blue-400 text-blue-600 dark:text-blue-400 rounded-xl font-semibold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                        >
+                          <ArrowDownTrayIcon className="h-4 w-4" />
+                          Invoice
+                        </button>
+
                         {/* Update/Cancel - Only for confirmed/pending bookings */}
                         {(booking.status === 'confirmed' || booking.status === 'pending') && (
                           <>
