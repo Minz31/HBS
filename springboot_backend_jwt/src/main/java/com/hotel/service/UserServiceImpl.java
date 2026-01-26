@@ -16,115 +16,115 @@ import com.hotel.dtos.AuthResp;
 import com.hotel.dtos.UserDTO;
 import com.hotel.dtos.UserRegDTO;
 import com.hotel.entities.User;
+import com.hotel.entities.UserRole;
 import com.hotel.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-@Service // spring bean - B.L
-@Transactional // auto tx management
+@Service
+@Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
-    // depcy - Constructor based D.I
+    
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<UserDTO> getAllUsers() {
-
-        return userRepository.findAll() // List<Entity>
-                .stream() // Stream<Entity>
-                .map(entity -> modelMapper.map(entity, UserDTO.class)) // Stream<DTO>
+        log.debug("Getting all users");
+        return userRepository.findAll()
+                .stream()
+                .map(entity -> modelMapper.map(entity, UserDTO.class))
                 .toList();
     }
 
     @Override
     public UserDTO registerUser(UserRegDTO dto) {
-        // 1. check if exists
+        log.info("Registering new user with email: {}", dto.getEmail());
+        
         if (userRepository.existsByEmailOrPhone(dto.getEmail(), dto.getPhone())) {
             throw new InvalidInputException("User already exists with this email or phone");
         }
-        // 2. map dto -> entity
+        
         User user = modelMapper.map(dto, User.class);
-        // 3. set default role and encode password
-        user.setUserRole(com.hotel.entities.UserRole.ROLE_CUSTOMER);
+        user.setUserRole(UserRole.ROLE_CUSTOMER);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        // 4. save
+        
         User savedUser = userRepository.save(user);
+        log.info("User registered successfully with ID: {}", savedUser.getId());
+        
         return modelMapper.map(savedUser, UserDTO.class);
     }
 
     @Override
     public String addUser(User user) {
-        // 1. validate for dup email or phone no
+        log.info("Adding new user: {}", user.getEmail());
+        
         if (userRepository.existsByEmailOrPhone(user.getEmail(), user.getPhone())) {
-            // dup email or phone no -> throw custom unchecked exception
-            throw new InvalidInputException("Dup email or phone !!!!!!!!");
+            throw new InvalidInputException("User already exists with this email or phone");
         }
-        // 2. save user details
-        User persistentUser = userRepository.save(user);
-        return "New User added with ID=" + persistentUser.getId();
-    }// tx.commit() -> session.flush() -> DML - insert -> session.close()
+        
+        User savedUser = userRepository.save(user);
+        return "New User added with ID=" + savedUser.getId();
+    }
 
     @Override
     public ApiResponse deleteUserDetails(Long userId) {
-        // 1. check if user exists by id
-        if (userRepository.existsById(userId)) {
-            // => user exists -> mark it for removal
-            userRepository.deleteById(userId);
-            return new ApiResponse("Success", "User details deleted ....");
+        log.info("Deleting user with ID: {}", userId);
+        
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User not found with ID: " + userId);
         }
-        // user doesn't exist
-        throw new ResourceNotFoundException("User doesn't exist by id !!!!!");
-    }// deletes rec from DB
+        
+        userRepository.deleteById(userId);
+        return new ApiResponse("Success", "User deleted successfully");
+    }
 
     @Override
     public User getUserDetails(Long userId) {
-        // TODO Auto-generated method stub
-        return userRepository.findById(userId) // Optional<User>
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid user id !!!!!"));
+        log.debug("Getting user details for ID: {}", userId);
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
     }
 
     @Override
     public ApiResponse updateDetails(Long id, User user) {
-        // 1. get user details by id
-        User persistentUser = getUserDetails(id);
-        // 2 . call setters
-        persistentUser.setDob(user.getDob());
-        persistentUser.setFirstName(user.getFirstName());
-        persistentUser.setLastName(user.getLastName());
-        persistentUser.setPassword(user.getPassword());
-        persistentUser.setRegAmount(user.getRegAmount());
-        // similarly call other setters
-        return new ApiResponse("Success", "Updated user details");
+        log.info("Updating user with ID: {}", id);
+        
+        User existingUser = getUserDetails(id);
+        
+        existingUser.setDob(user.getDob());
+        existingUser.setFirstName(user.getFirstName());
+        existingUser.setLastName(user.getLastName());
+        existingUser.setPassword(user.getPassword());
+        existingUser.setRegAmount(user.getRegAmount());
+        
+        return new ApiResponse("Success", "User updated successfully");
     }
 
     @Override
     public AuthResp authenticate(AuthRequest request) {
-        // 1. validate user with em & password
+        log.info("Authenticating user: {}", request.getEmail());
+        
         User user = userRepository.findByEmailAndPassword(request.getEmail(), request.getPassword())
                 .orElseThrow(() -> new AuthenticationFailedException("Invalid email or password"));
-        // 2. failed -> throw custom exc
-        // 3. success -> entity -> dto
-        /*
-         * API of ModelMapper class
-         * public D map(Object src, Class<D> class)
-         * - loads dest class & creates instance : def ctor
-         * - calls MATCHING getters(src) & setters(dest)
-         * - rets its instance
-         */
-        AuthResp dto = modelMapper.map(user, AuthResp.class);
-        dto.setMessage("Successful Login !");
-        return dto;
+        
+        AuthResp response = modelMapper.map(user, AuthResp.class);
+        response.setMessage("Login successful");
+        
+        return response;
     }
 
     @Override
     public ApiResponse encryptPasswords() {
-        // get all users
+        log.info("Encrypting all user passwords");
+        
         List<User> users = userRepository.findAll();
-        // user - persistent
         users.forEach(user -> user.setPassword(passwordEncoder.encode(user.getPassword())));
-        return new ApiResponse("Password encrypted", "Success");
+        
+        return new ApiResponse("Success", "All passwords encrypted successfully");
     }
-
 }

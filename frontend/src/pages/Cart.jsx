@@ -386,12 +386,17 @@ const Cart = () => {
                   </div>
                 </div>
 
-                <button
-                  onClick={handleCheckout}
-                  className="w-full py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-xl font-bold hover:from-yellow-500 hover:to-yellow-600 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                >
-                  Proceed to Checkout
-                </button>
+                  <button 
+                    onClick={handleCheckout}
+                    disabled={cartItems.length === 0 || cartItems.some(item => !item.checkIn || !item.checkOut)}
+                    className={`w-full py-3 rounded-lg font-semibold mb-4 transition-colors ${
+                      cartItems.length === 0 || cartItems.some(item => !item.checkIn || !item.checkOut)
+                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                        : 'bg-yellow-500 text-gray-900 hover:bg-yellow-400'
+                    }`}
+                  >
+                    Proceed to Checkout
+                  </button>
 
                 <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <p className="text-sm text-green-700 dark:text-green-400 text-center">

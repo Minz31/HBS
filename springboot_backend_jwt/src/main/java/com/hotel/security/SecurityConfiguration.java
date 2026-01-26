@@ -29,7 +29,7 @@ public class SecurityConfiguration {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        log.info("********configuring spring sec filter chain*******");
+        log.info("Configuring Spring Security filter chain");
 
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))

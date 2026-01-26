@@ -9,28 +9,30 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-@SpringBootApplication // @Configuration : bean config xml file
+import lombok.extern.slf4j.Slf4j;
+
+@SpringBootApplication
+@Slf4j
 public class Application {
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
 
-    @Bean // <bean id class ...../>
-    ModelMapper modelMapper() {
-        System.out.println("creating n configuring model mapper");
+    @Bean
+    public ModelMapper modelMapper() {
+        log.info("Creating and configuring ModelMapper");
         ModelMapper mapper = new ModelMapper();
-        // 1. set matching strategy - STRICT => Transfer only those props with matching
-        // names & data types
+        
         mapper.getConfiguration()
                 .setMatchingStrategy(MatchingStrategies.STRICT)
-                // //2. DO not transfer null values from src->dest
                 .setPropertyCondition(Conditions.isNotNull());
+        
         return mapper;
     }
 
     @Bean
-    PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }

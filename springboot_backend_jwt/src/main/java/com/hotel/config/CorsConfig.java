@@ -20,9 +20,11 @@ public class CorsConfig {
                 "http://localhost:3000", // React default
                 "http://localhost:5173", // Vite default
                 "http://localhost:5174", // Vite alternate port
+                "http://localhost:5175", // Vite alternate port
                 "http://127.0.0.1:3000",
                 "http://127.0.0.1:5173",
-                "http://127.0.0.1:5174"));
+                "http://127.0.0.1:5174",
+                "http://127.0.0.1:5175"));
 
         // Allow all HTTP methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));

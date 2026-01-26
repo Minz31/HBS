@@ -3,6 +3,7 @@ package com.hotel.bootstrap;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,8 +32,13 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (userRepository.count() == 0) {
-            loadInitialData();
+        try {
+            if (userRepository.count() == 0) {
+                loadInitialData();
+            }
+        } catch (Exception e) {
+            log.error("Failed to load initial data: {}", e.getMessage(), e);
+            throw e;
         }
     }
 
@@ -40,11 +46,26 @@ public class DataLoader implements CommandLineRunner {
         log.info("Loading initial data...");
 
         // Create users
+        List<User> users = createUsers();
+        userRepository.saveAll(users);
+
+        // Create hotels
+        List<Hotel> hotels = createHotels();
+        hotelRepository.saveAll(hotels);
+
+        // Create room types
+        List<RoomType> roomTypes = createRoomTypes(hotels);
+        roomTypeRepository.saveAll(roomTypes);
+
+        log.info("Initial data loaded successfully");
+    }
+
+    private List<User> createUsers() {
         User admin = new User("Admin", "User", "admin@stays.in", 
                 passwordEncoder.encode("admin123"), LocalDate.of(1990, 1, 1), 0, "1234567890");
         admin.setUserRole(UserRole.ROLE_ADMIN);
 
-        User customer = new User("Aadesh", "Customer", "user@stays.in", 
+        User customer = new User("John", "Customer", "user@stays.in", 
                 passwordEncoder.encode("password123"), LocalDate.of(1995, 5, 15), 0, "9876543210");
         customer.setUserRole(UserRole.ROLE_CUSTOMER);
 
@@ -52,56 +73,56 @@ public class DataLoader implements CommandLineRunner {
                 passwordEncoder.encode("owner123"), LocalDate.of(1985, 3, 10), 0, "5555555555");
         hotelManager.setUserRole(UserRole.ROLE_HOTEL_MANAGER);
 
-        userRepository.saveAll(Arrays.asList(admin, customer, hotelManager));
+        return Arrays.asList(admin, customer, hotelManager);
+    }
 
-        // Create hotels
+    private List<Hotel> createHotels() {
         Hotel hotel1 = new Hotel();
         hotel1.setName("Taj Lands End");
         hotel1.setCity("Mumbai");
         hotel1.setState("Maharashtra");
-        hotel1.setAddress("Bandra West, Mumbai");
+        hotel1.setAddress("Marine Drive, Mumbai");
         hotel1.setRating(4.5);
         hotel1.setRatingCount(1250);
         hotel1.setRatingText("Excellent");
         hotel1.setDistance("5.1 km to City centre");
-        hotel1.setLocation("Bandra West, Mumbai");
+        hotel1.setLocation("Marine Drive, Mumbai");
         hotel1.setPetFriendly(false);
         hotel1.setMeals("Breakfast included");
         hotel1.setDescription("Luxury hotel with ocean views");
 
         Hotel hotel2 = new Hotel();
-        hotel2.setName("The Oberoi Udaivilas");
-        hotel2.setCity("Udaipur");
+        hotel2.setName("The Grand Palace");
+        hotel2.setCity("Jaipur");
         hotel2.setState("Rajasthan");
-        hotel2.setAddress("Lake Pichola, Udaipur");
+        hotel2.setAddress("City Palace Road, Jaipur");
         hotel2.setRating(4.8);
         hotel2.setRatingCount(987);
         hotel2.setRatingText("Exceptional");
         hotel2.setDistance("3.2 km to City centre");
-        hotel2.setLocation("Lake Pichola, Udaipur");
+        hotel2.setLocation("City Palace Road, Jaipur");
         hotel2.setPetFriendly(false);
         hotel2.setMeals("All meals included");
-        hotel2.setDescription("Palace hotel on Lake Pichola");
+        hotel2.setDescription("Palace hotel with royal heritage");
 
-        hotelRepository.saveAll(Arrays.asList(hotel1, hotel2));
+        return Arrays.asList(hotel1, hotel2);
+    }
 
-        // Create room types
+    private List<RoomType> createRoomTypes(List<Hotel> hotels) {
         RoomType room1 = new RoomType();
         room1.setName("Ocean View Room");
         room1.setDescription("Spacious room with ocean view");
         room1.setPricePerNight(new BigDecimal("18500"));
         room1.setCapacity(2);
-        room1.setHotel(hotel1);
+        room1.setHotel(hotels.get(0));
 
         RoomType room2 = new RoomType();
-        room2.setName("Premier Lake View Room");
-        room2.setDescription("Luxury room overlooking the lake");
+        room2.setName("Premier Heritage Room");
+        room2.setDescription("Luxury room with royal decor");
         room2.setPricePerNight(new BigDecimal("45000"));
         room2.setCapacity(2);
-        room2.setHotel(hotel2);
+        room2.setHotel(hotels.get(1));
 
-        roomTypeRepository.saveAll(Arrays.asList(room1, room2));
-
-        log.info("Initial data loaded successfully");
+        return Arrays.asList(room1, room2);
     }
 }
