@@ -32,7 +32,8 @@ public class ComplaintController {
     private final ComplaintService complaintService;
 
     @PostMapping
-    public ResponseEntity<Complaint> raiseComplaint(@RequestBody ComplaintDTO dto, Principal principal) {
+    public ResponseEntity<Complaint> raiseComplaint(@RequestBody @jakarta.validation.Valid ComplaintDTO dto,
+            Principal principal) {
         return ResponseEntity.ok(complaintService.raiseComplaint(dto, principal.getName()));
     }
 

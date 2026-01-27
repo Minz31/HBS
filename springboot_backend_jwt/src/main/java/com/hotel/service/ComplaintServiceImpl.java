@@ -56,7 +56,7 @@ public class ComplaintServiceImpl implements ComplaintService {
         complaint.setBooking(booking);
         complaint.setSubject(dto.getSubject());
         complaint.setDescription(dto.getDescription());
-        complaint.setStatus("OPEN");
+        complaint.setStatus("PENDING");
         complaint.setCreatedAt(LocalDateTime.now());
 
         return complaintRepository.save(complaint);
@@ -82,6 +82,11 @@ public class ComplaintServiceImpl implements ComplaintService {
         complaint.setStatus(status);
         if (comment != null) {
             complaint.setAdminComment(comment);
+            complaint.setResolution(comment); // Also set resolution field
+        }
+
+        if ("RESOLVED".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status)) {
+            complaint.setResolvedAt(LocalDateTime.now());
         }
 
         complaintRepository.save(complaint);

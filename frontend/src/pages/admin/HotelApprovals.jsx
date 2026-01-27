@@ -15,7 +15,7 @@ import { adminAPI } from '../../services/completeAPI';
 
 const HotelApprovals = () => {
     const [selectedHotel, setSelectedHotel] = useState(null);
-    const [filter, setFilter] = useState('pending');
+    const [filter, setFilter] = useState('all');
     const [hotels, setHotels] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -39,14 +39,43 @@ const HotelApprovals = () => {
                 data = await adminAPI.getAllHotels();
             }
             
-            // Helper to parse JSON fields safely
-            const parseHotelData = (h) => ({
-                ...h,
-                amenities: typeof h.amenities === 'string' ? JSON.parse(h.amenities || '[]') : (h.amenities || []),
-                images: typeof h.images === 'string' ? JSON.parse(h.images || '[]') : (h.images || []),
-            });
+            // Helper to parse JSON fields safely and reconstruct amenities
+            const parseHotelData = (h) => {
+                try {
+                    const amenitiesList = [];
+                    if (h.wifi) amenitiesList.push('WiFi');
+                    if (h.parking) amenitiesList.push('Parking');
+                    if (h.gym) amenitiesList.push('Gym');
+                    if (h.ac) amenitiesList.push('AC');
+                    if (h.restaurant) amenitiesList.push('Restaurant');
+                    if (h.roomService) amenitiesList.push('Room Service');
 
-            setHotels(Array.isArray(data) ? data.map(parseHotelData) : []);
+                    let imagesList = [];
+                    if (h.images) {
+                        imagesList = typeof h.images === 'string' ? JSON.parse(h.images) : h.images;
+                    }
+                    // Fallback image if no images
+                    if (!imagesList || imagesList.length === 0) {
+                        imagesList = ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800'];
+                    }
+
+                    return {
+                        ...h,
+                        amenities: amenitiesList,
+                        images: imagesList,
+                    };
+                } catch (e) {
+                    console.error("Error parsing hotel:", h, e);
+                    return {
+                        ...h,
+                        amenities: [],
+                        images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800'],
+                    };
+                }
+            };
+
+            const parsedHotels = Array.isArray(data) ? data.map(parseHotelData) : [];
+            setHotels(parsedHotels);
         } catch (error) {
             console.error('Error loading hotels:', error);
         } finally {

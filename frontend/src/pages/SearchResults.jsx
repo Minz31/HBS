@@ -155,10 +155,13 @@ const SearchResults = () => {
                 parsedImages = typeof hotel.images === 'string' ? JSON.parse(hotel.images) : hotel.images;
              } catch (e) { parsedImages = [hotel.images] } // Fallback
 
-             let parsedAmenities = [];
-             try {
-                parsedAmenities = typeof hotel.amenities === 'string' ? JSON.parse(hotel.amenities) : hotel.amenities || [];
-             } catch (e) { parsedAmenities = [] }
+             const parsedAmenities = [];
+             if (hotel.wifi) parsedAmenities.push("WiFi");
+             if (hotel.parking) parsedAmenities.push("Parking");
+             if (hotel.gym) parsedAmenities.push("Gym");
+             if (hotel.ac) parsedAmenities.push("AC");
+             if (hotel.restaurant) parsedAmenities.push("Restaurant");
+             if (hotel.roomService) parsedAmenities.push("Room Service");
              
              // Extract price number from priceRange string if possible, else default
              let priceVal = 5000;
@@ -197,7 +200,7 @@ const SearchResults = () => {
 
       } catch (error) {
         console.error("Error searching hotels:", error);
-        toast.error("Failed to load hotels");
+        toast.error(`Search failed: ${error.message || "Unknown error"}`);
         setSearchResults([]);
       } finally {
         setIsLoading(false);

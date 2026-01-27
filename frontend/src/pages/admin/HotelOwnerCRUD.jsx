@@ -37,7 +37,9 @@ const HotelOwnerCRUD = () => {
         address: '',
         totalRooms: '',
         description: '',
-        amenities: '',
+        totalRooms: '',
+        description: '',
+        amenities: [], // Array for checkboxes
         priceRange: '',
     };
     const [formData, setFormData] = useState(initialFormState);
@@ -77,7 +79,13 @@ const HotelOwnerCRUD = () => {
                 totalRooms: parseInt(formData.totalRooms) || 0,
                 // Default image if not provided (functionality for image upload is separate)
                 images: JSON.stringify(['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=60']),
-                amenities: formData.amenities, // backend expects JSON or String? Entity says JSON, DTO might handle string
+                // Map array to booleans
+                wifi: (formData.amenities || []).includes('WiFi'),
+                parking: (formData.amenities || []).includes('Parking'),
+                gym: (formData.amenities || []).includes('Gym'),
+                ac: (formData.amenities || []).includes('AC'),
+                restaurant: (formData.amenities || []).includes('Restaurant'),
+                roomService: false, 
                 city: formData.location.split(',')[0].trim(), // Simple extraction
                 state: formData.location.split(',')[1]?.trim() || '',
             };
@@ -102,7 +110,15 @@ const HotelOwnerCRUD = () => {
             totalRooms: hotel.totalRooms?.toString() || '',
             priceRange: hotel.priceRange,
             description: hotel.description,
-            amenities: hotel.amenities, // Depending on format
+            amenities: (() => {
+                const list = [];
+                if (hotel.wifi) list.push('WiFi');
+                if (hotel.parking) list.push('Parking');
+                if (hotel.gym) list.push('Gym');
+                if (hotel.ac) list.push('AC');
+                if (hotel.restaurant) list.push('Restaurant');
+                return list;
+            })(),
         });
     };
 
@@ -114,6 +130,12 @@ const HotelOwnerCRUD = () => {
                totalRooms: parseInt(formData.totalRooms),
                city: formData.location.split(',')[0].trim(),
                state: formData.location.split(',')[1]?.trim() || '',
+               wifi: (formData.amenities || []).includes('WiFi'),
+               parking: (formData.amenities || []).includes('Parking'),
+               gym: (formData.amenities || []).includes('Gym'),
+               ac: (formData.amenities || []).includes('AC'),
+               restaurant: (formData.amenities || []).includes('Restaurant'),
+               roomService: false,
             };
             await ownerHotelManagement.updateHotel(selectedHotel.id, payload);
             await fetchHotels();
@@ -235,7 +257,13 @@ const HotelOwnerCRUD = () => {
                                     {/* Amenities */}
                                     <div className="mb-4">
                                         <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold truncate">
-                                            {hotel.amenities}
+                                            {[
+                                                hotel.wifi && 'WiFi',
+                                                hotel.parking && 'Parking',
+                                                hotel.gym && 'Gym',
+                                                hotel.ac && 'AC',
+                                                hotel.restaurant && 'Restaurant'
+                                            ].filter(Boolean).join(', ')}
                                         </p>
                                     </div>
 
@@ -382,16 +410,30 @@ const HotelOwnerCRUD = () => {
                             {/* Amenities */}
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                    Amenities (separate by commas)
+                                    Amenities
                                 </label>
-                                <textarea
-                                    name="amenities"
-                                    value={formData.amenities}
-                                    onChange={handleInputChange}
-                                    rows={3}
-                                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white resize-none"
-                                    placeholder="e.g., WiFi, Pool, Restaurant, Spa, Room Service..."
-                                />
+                                <div className="grid grid-cols-3 gap-2">
+                                    {['AC', 'Parking', 'WiFi', 'Gym', 'Restaurant'].map(opt => (
+                                        <button
+                                            key={opt}
+                                            type="button"
+                                            onClick={() => {
+                                                const current = formData.amenities || [];
+                                                const newAmenities = current.includes(opt)
+                                                    ? current.filter(a => a !== opt)
+                                                    : [...current, opt];
+                                                setFormData({ ...formData, amenities: newAmenities });
+                                            }}
+                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                (formData.amenities || []).includes(opt)
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                            }`}
+                                        >
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 

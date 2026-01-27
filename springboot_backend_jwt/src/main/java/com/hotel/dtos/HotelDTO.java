@@ -18,7 +18,12 @@ public class HotelDTO {
     private Double rating;
     private Integer ratingCount;
     private String description;
-    private List<String> amenities;
+    private boolean wifi;
+    private boolean parking;
+    private boolean gym;
+    private boolean ac;
+    private boolean restaurant;
+    private boolean roomService;
     private List<String> images;
     private String location;
     private String distance;

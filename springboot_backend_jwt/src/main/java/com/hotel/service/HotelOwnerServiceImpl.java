@@ -96,9 +96,11 @@ public class HotelOwnerServiceImpl implements HotelOwnerService {
 
         Hotel hotel = modelMapper.map(hotelDTO, Hotel.class);
         hotel.setOwner(owner);
+        hotel.setOwner(owner);
         hotel.setStatus("PENDING"); // Requires admin approval
+        hotel.setRejectionReason(null);
 
-        processHotelJsonFields(hotel, hotelDTO.getAmenities(), hotelDTO.getImages());
+        processHotelImages(hotel, hotelDTO.getImages());
 
         return hotelRepository.save(hotel);
     }
@@ -115,7 +117,14 @@ public class HotelOwnerServiceImpl implements HotelOwnerService {
         hotel.setStarRating(hotelDTO.getStarRating());
         hotel.setPriceRange(hotelDTO.getPriceRange());
 
-        processHotelJsonFields(hotel, hotelDTO.getAmenities(), hotelDTO.getImages());
+        hotel.setWifi(hotelDTO.isWifi());
+        hotel.setParking(hotelDTO.isParking());
+        hotel.setGym(hotelDTO.isGym());
+        hotel.setAc(hotelDTO.isAc());
+        hotel.setRestaurant(hotelDTO.isRestaurant());
+        hotel.setRoomService(hotelDTO.isRoomService());
+
+        processHotelImages(hotel, hotelDTO.getImages());
 
         return hotelRepository.save(hotel);
     }
@@ -136,6 +145,10 @@ public class HotelOwnerServiceImpl implements HotelOwnerService {
     @Override
     public RoomType addRoomType(Long hotelId, RoomTypeDTO roomTypeDTO, String ownerEmail) {
         Hotel hotel = getOwnerHotelDetails(hotelId, ownerEmail);
+
+        if (!"APPROVED".equals(hotel.getStatus())) {
+            throw new IllegalStateException("Cannot add room types until hotel is approved by admin");
+        }
 
         RoomType roomType = modelMapper.map(roomTypeDTO, RoomType.class);
         roomType.setHotel(hotel);
@@ -208,6 +221,10 @@ public class HotelOwnerServiceImpl implements HotelOwnerService {
     @Override
     public Room addRoom(Long hotelId, RoomDTO roomDTO, String ownerEmail) {
         Hotel hotel = getOwnerHotelDetails(hotelId, ownerEmail);
+
+        if (!"APPROVED".equals(hotel.getStatus())) {
+            throw new IllegalStateException("Cannot add rooms until hotel is approved by admin");
+        }
 
         RoomType roomType = roomTypeRepository.findById(roomDTO.getRoomTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Room type not found"));
@@ -350,16 +367,13 @@ public class HotelOwnerServiceImpl implements HotelOwnerService {
         return stats;
     }
 
-    private void processHotelJsonFields(Hotel hotel, Object amenities, Object images) {
+    private void processHotelImages(Hotel hotel, Object images) {
         try {
-            if (amenities != null) {
-                hotel.setAmenities(objectMapper.writeValueAsString(amenities));
-            }
             if (images != null) {
                 hotel.setImages(objectMapper.writeValueAsString(images));
             }
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error processing hotel data", e);
+            throw new RuntimeException("Error processing hotel images", e);
         }
     }
 
@@ -519,17 +533,17 @@ public class HotelOwnerServiceImpl implements HotelOwnerService {
 
         List<Booking> bookings = bookingRepository.findByHotelId(hotelId);
 
-        double totalRevenue = bookings.stream()
+        BigDecimal totalRevenue = bookings.stream()
                 .filter(b -> "CONFIRMED".equals(b.getStatus()) || "COMPLETED".equals(b.getStatus()))
                 .filter(b -> "COMPLETED".equals(b.getPaymentStatus()))
-                .mapToDouble(Booking::getTotalPrice)
-                .sum();
+                .map(Booking::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        double pendingPayments = bookings.stream()
+        BigDecimal pendingPayments = bookings.stream()
                 .filter(b -> !"CANCELLED".equals(b.getStatus()))
                 .filter(b -> "PENDING".equals(b.getPaymentStatus()))
-                .mapToDouble(Booking::getTotalPrice)
-                .sum();
+                .map(Booking::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         long completedTrans = bookings.stream()
                 .filter(b -> "COMPLETED".equals(b.getPaymentStatus()))

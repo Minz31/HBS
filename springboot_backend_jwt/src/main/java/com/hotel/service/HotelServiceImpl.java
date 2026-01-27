@@ -43,7 +43,8 @@ public class HotelServiceImpl implements HotelService {
     public List<Hotel> getAllHotels() {
         try {
             log.debug("Getting all hotels");
-            return hotelRepository.findAll();
+            log.debug("Getting all hotels");
+            return hotelRepository.findByStatus("APPROVED");
         } catch (Exception e) {
             log.error("Error getting all hotels", e);
             throw new RuntimeException("Failed to retrieve hotels", e);
@@ -74,10 +75,10 @@ public class HotelServiceImpl implements HotelService {
             log.info("Searching hotels with city: {}, state: {}, destination: {}", city, state, destination);
 
             if (city != null && !city.trim().isEmpty()) {
-                return hotelRepository.findByCityContainingIgnoreCase(city);
+                return hotelRepository.findByCityContainingIgnoreCaseAndStatus(city, "APPROVED");
             }
 
-            return getAllHotels();
+            return hotelRepository.findByStatus("APPROVED");
         } catch (Exception e) {
             log.error("Error searching hotels", e);
             throw new RuntimeException("Failed to search hotels", e);
@@ -140,15 +141,20 @@ public class HotelServiceImpl implements HotelService {
 
             // 3. Set Defaults & Relationships
             hotel.setOwner(owner);
-            hotel.setStatus("APPROVED"); // Auto-approve all hotels (admin approval bypassed)
+            hotel.setStatus("PENDING"); // Default to PENDING for Admin approval
+            hotel.setRejectionReason(null);
             hotel.setRating(0.0);
             hotel.setRatingCount(0);
 
             // Handle JSON fields manually
             try {
-                if (hotelDTO.getAmenities() != null) {
-                    hotel.setAmenities(objectMapper.writeValueAsString(hotelDTO.getAmenities()));
-                }
+                // Amenities booleans map automatically or manual if explicit needed
+                hotel.setWifi(hotelDTO.isWifi());
+                hotel.setParking(hotelDTO.isParking());
+                hotel.setGym(hotelDTO.isGym());
+                hotel.setAc(hotelDTO.isAc());
+                hotel.setRestaurant(hotelDTO.isRestaurant());
+                hotel.setRoomService(hotelDTO.isRoomService());
                 if (hotelDTO.getImages() != null) {
                     hotel.setImages(objectMapper.writeValueAsString(hotelDTO.getImages()));
                 }
@@ -298,9 +304,12 @@ public class HotelServiceImpl implements HotelService {
 
         // Handle JSON fields manually
         try {
-            if (hotelDTO.getAmenities() != null) {
-                hotel.setAmenities(objectMapper.writeValueAsString(hotelDTO.getAmenities()));
-            }
+            hotel.setWifi(hotelDTO.isWifi());
+            hotel.setParking(hotelDTO.isParking());
+            hotel.setGym(hotelDTO.isGym());
+            hotel.setAc(hotelDTO.isAc());
+            hotel.setRestaurant(hotelDTO.isRestaurant());
+            hotel.setRoomService(hotelDTO.isRoomService());
             if (hotelDTO.getImages() != null) {
                 hotel.setImages(objectMapper.writeValueAsString(hotelDTO.getImages()));
             }
@@ -340,15 +349,19 @@ public class HotelServiceImpl implements HotelService {
         Hotel hotel = modelMapper.map(hotelDTO, Hotel.class);
 
         hotel.setOwner(savedUser);
-        hotel.setStatus("APPROVED"); // Auto-approve all hotels (admin approval bypassed)
+        hotel.setStatus("PENDING"); // Default to PENDING for Admin approval
+        hotel.setRejectionReason(null);
         hotel.setRating(0.0);
         hotel.setRatingCount(0);
 
         // Handle JSON fields manually
         try {
-            if (hotelDTO.getAmenities() != null) {
-                hotel.setAmenities(objectMapper.writeValueAsString(hotelDTO.getAmenities()));
-            }
+            hotel.setWifi(hotelDTO.isWifi());
+            hotel.setParking(hotelDTO.isParking());
+            hotel.setGym(hotelDTO.isGym());
+            hotel.setAc(hotelDTO.isAc());
+            hotel.setRestaurant(hotelDTO.isRestaurant());
+            hotel.setRoomService(hotelDTO.isRoomService());
             if (hotelDTO.getImages() != null) {
                 hotel.setImages(objectMapper.writeValueAsString(hotelDTO.getImages()));
             }

@@ -45,17 +45,17 @@ public class HotelController {
         return ResponseEntity.ok(hotelService.getHotelsByStatus(status));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Hotel> getHotelDetails(@PathVariable Long id) {
-        return ResponseEntity.ok(hotelService.getHotelDetails(id));
-    }
-
     @GetMapping("/search")
     public ResponseEntity<List<Hotel>> searchHotels(
             @RequestParam(required = false) String city,
             @RequestParam(required = false) String state,
             @RequestParam(required = false) String destination) {
         return ResponseEntity.ok(hotelService.searchHotels(city, state, destination));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Hotel> getHotelDetails(@PathVariable Long id) {
+        return ResponseEntity.ok(hotelService.getHotelDetails(id));
     }
 
     @GetMapping("/{id}/rooms")

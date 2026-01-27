@@ -39,7 +39,7 @@ const HotelProfileManagement = () => {
         checkOutTime: '11:00',
     });
 
-    const [amenities, setAmenities] = useState('');
+    const [amenities, setAmenities] = useState([]);
     const [images, setImages] = useState([]); // Array of strings (URLs)
 
     const [activeTab, setActiveTab] = useState('basic');
@@ -73,7 +73,15 @@ const HotelProfileManagement = () => {
 
             // Parse amenities/images if needed, or if API returns list for DTO
             // ownerHotelManagement.getHotel returns HotelDTO which has List<String> images/amenities.
-            setAmenities(Array.isArray(data.amenities) ? data.amenities.join(', ') : (data.amenities || ''));
+            // Parse amenities booleans to list
+            const currentAmenities = [];
+            if (data.wifi) currentAmenities.push('WiFi');
+            if (data.parking) currentAmenities.push('Parking');
+            if (data.gym) currentAmenities.push('Gym');
+            if (data.ac) currentAmenities.push('AC');
+            if (data.restaurant) currentAmenities.push('Restaurant');
+            setAmenities(currentAmenities);
+
             setImages(Array.isArray(data.images) ? data.images : []);
 
         } catch (error) {
@@ -87,8 +95,16 @@ const HotelProfileManagement = () => {
         setHotelData({ ...hotelData, [e.target.name]: e.target.value });
     };
 
-    const handleAmenitiesChange = (e) => {
-        setAmenities(e.target.value);
+    const amenitiesList = [
+        'AC', 'Parking', 'WiFi', 'Gym', 'Restaurant'
+    ];
+
+    const handleAmenityToggle = (amenity) => {
+        setAmenities(prev => 
+            prev.includes(amenity)
+                ? prev.filter(a => a !== amenity)
+                : [...prev, amenity]
+        );
     };
 
     // Image upload handler (Mock - just adds base64 or placeholder)
@@ -126,7 +142,13 @@ const HotelProfileManagement = () => {
         try {
             const payload = {
                 ...hotelData,
-                amenities: amenities.split(',').map(s => s.trim()).filter(s => s),
+                amenities: [],
+                wifi: amenities.includes('WiFi'),
+                parking: amenities.includes('Parking'),
+                gym: amenities.includes('Gym'),
+                ac: amenities.includes('AC'),
+                restaurant: amenities.includes('Restaurant'),
+                roomService: false,
                 images: images,
             };
             await ownerHotelManagement.updateHotel(selectedHotel.id, payload);
@@ -374,18 +396,27 @@ const HotelProfileManagement = () => {
                                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Hotel Amenities</h2>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                        Describe available amenities (separate by commas)
+                                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                                        Select available amenities
                                     </label>
-                                    <textarea
-                                        value={amenities}
-                                        onChange={handleAmenitiesChange}
-                                        rows="8"
-                                        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:border-indigo-500 transition-all font-medium"
-                                        placeholder="e.g. Free WiFi, Swimming Pool, Spa, 24/7 Room Service..."
-                                    />
-                                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 italic">
-                                        * Enter your amenities as a list or a short description. These will be shown to guests during booking.
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        {amenitiesList.map((amenity) => (
+                                            <button
+                                                key={amenity}
+                                                type="button"
+                                                onClick={() => handleAmenityToggle(amenity)}
+                                                className={`px-4 py-3 rounded-xl font-medium text-sm transition-all flex items-center justify-center gap-2 ${amenities.includes(amenity)
+                                                    ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg'
+                                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                                    }`}
+                                            >
+                                                {amenities.includes(amenity) && <FaCheckCircle className="h-4 w-4" />}
+                                                {amenity}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <p className="mt-4 text-sm text-gray-500 dark:text-gray-400 italic">
+                                        * Selected amenities will be highlighted and displayed to guests.
                                     </p>
                                 </div>
                             </div>

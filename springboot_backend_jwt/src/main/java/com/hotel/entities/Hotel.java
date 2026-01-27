@@ -44,8 +44,13 @@ public class Hotel extends BaseEntity {
     @Column(name = "rating_count")
     private Integer ratingCount = 0;
 
-    @Column(columnDefinition = "JSON")
-    private String amenities;
+    private Boolean wifi = false;
+    private Boolean parking = false;
+    private Boolean gym = false;
+    private Boolean ac = false;
+    private Boolean restaurant = false;
+    @Column(name = "room_service")
+    private Boolean roomService = false;
 
     @Column(columnDefinition = "JSON")
     private String images;
@@ -68,7 +73,7 @@ public class Hotel extends BaseEntity {
     private String priceRange;
 
     // Owner relationship
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id")
     @ToString.Exclude
     // Using JsonIgnoreProperties allows the frontend to receive Owner data

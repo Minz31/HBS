@@ -45,9 +45,7 @@ const Hoteliers = () => {
 
   const hotelTypes = ['Hotel', 'Resort', 'Boutique Hotel', 'Motel', 'Guest House', 'Villa', 'Apartment'];
   const amenitiesList = [
-    'WiFi', 'Swimming Pool', 'Gym', 'Spa', 'Restaurant', 'Bar',
-    'Room Service', 'Parking', 'Airport Shuttle', 'Business Center',
-    'Conference Room', 'Laundry', 'Pet Friendly', 'AC Rooms'
+    'AC', 'Parking', 'WiFi', 'Gym', 'Restaurant'
   ];
 
   const benefits = [
@@ -113,7 +111,13 @@ const Hoteliers = () => {
         description: `${formData.hotelType} with ${formData.totalRooms} rooms`,
         starRating: parseInt(formData.starRating),
         priceRange: `₹5,000 - ₹15,000`, // Default range
-        amenities: formData.amenities,
+        amenities: [], // Empty for now, sending booleans
+        wifi: formData.amenities.includes('WiFi'),
+        parking: formData.amenities.includes('Parking'),
+        gym: formData.amenities.includes('Gym'),
+        ac: formData.amenities.includes('AC'),
+        restaurant: formData.amenities.includes('Restaurant'),
+        roomService: false, // Not in basic list
         images: [] // Empty for now
       };
 
