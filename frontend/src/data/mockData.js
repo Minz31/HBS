@@ -16,10 +16,8 @@ export const mockHotels = [
     ratingCount: 15715,
     price: 5000,
     originalPrice: 5000,
-    meals: "Breakfast included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Deluxe",
-    petFriendly: true,
   },
   {
     id: 2,
@@ -34,10 +32,8 @@ export const mockHotels = [
     ratingCount: 9876,
     price: 5000,
     originalPrice: 5000,
-    meals: "All meals included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Standard AC",
-    petFriendly: false,
   },
   {
     id: 3,
@@ -52,10 +48,8 @@ export const mockHotels = [
     ratingCount: 8234,
     price: 5000,
     originalPrice: 5000,
-    meals: "Breakfast included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Deluxe",
-    petFriendly: true,
   },
   // Maharashtra - Mumbai, Pune, Lonavala
   {
@@ -71,10 +65,8 @@ export const mockHotels = [
     ratingCount: 12340,
     price: 5000,
     originalPrice: 5000,
-    meals: "Breakfast included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Standard AC",
-    petFriendly: false,
   },
   {
     id: 5,
@@ -89,10 +81,8 @@ export const mockHotels = [
     ratingCount: 7654,
     price: 5000,
     originalPrice: 5000,
-    meals: "Breakfast & Dinner",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Standard AC",
-    petFriendly: true,
   },
   {
     id: 6,
@@ -107,10 +97,8 @@ export const mockHotels = [
     ratingCount: 4532,
     price: 5000,
     originalPrice: 5000,
-    meals: "All meals included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Family",
-    petFriendly: true,
   },
   // Goa - Panaji, Calangute, Candolim
   {
@@ -126,10 +114,8 @@ export const mockHotels = [
     ratingCount: 6789,
     price: 5000,
     originalPrice: 5000,
-    meals: "Breakfast included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Standard AC",
-    petFriendly: false,
   },
   {
     id: 8,
@@ -144,10 +130,8 @@ export const mockHotels = [
     ratingCount: 8976,
     price: 22000,
     originalPrice: 27500,
-    meals: "Breakfast & Dinner",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Standard AC",
-    petFriendly: true,
   },
   {
     id: 9,
@@ -162,10 +146,8 @@ export const mockHotels = [
     ratingCount: 5432,
     price: 5000,
     originalPrice: 5000,
-    meals: "Breakfast included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Family",
-    petFriendly: true,
   },
   // Kerala - Kochi, Munnar, Alleppey
   {
@@ -181,10 +163,8 @@ export const mockHotels = [
     ratingCount: 4567,
     price: 5000,
     originalPrice: 5000,
-    meals: "Breakfast included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Deluxe",
-    petFriendly: false,
   },
   {
     id: 11,
@@ -199,10 +179,8 @@ export const mockHotels = [
     ratingCount: 3456,
     price: 5000,
     originalPrice: 5000,
-    meals: "All meals included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Standard AC",
-    petFriendly: true,
   },
   {
     id: 12,
@@ -217,10 +195,8 @@ export const mockHotels = [
     ratingCount: 5678,
     price: 5000,
     originalPrice: 5000,
-    meals: "Breakfast & Dinner",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Deluxe",
-    petFriendly: false,
   },
   // Karnataka - Bangalore, Mysore, Coorg
   {
@@ -236,10 +212,8 @@ export const mockHotels = [
     ratingCount: 9876,
     price: 5000,
     originalPrice: 5000,
-    meals: "Breakfast included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Deluxe",
-    petFriendly: true,
   },
   {
     id: 14,
@@ -254,10 +228,8 @@ export const mockHotels = [
     ratingCount: 4567,
     price: 5000,
     originalPrice: 5000,
-    meals: "Breakfast included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Family",
-    petFriendly: false,
   },
   {
     id: 15,
@@ -272,10 +244,8 @@ export const mockHotels = [
     ratingCount: 3234,
     price: 5000,
     originalPrice: 5000,
-    meals: "All meals included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Deluxe",
-    petFriendly: true,
   },
   // Tamil Nadu - Chennai, Ooty, Pondicherry
   {
@@ -291,10 +261,8 @@ export const mockHotels = [
     ratingCount: 11234,
     price: 5000,
     originalPrice: 5000,
-    meals: "Breakfast included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Standard AC",
-    petFriendly: false,
   },
   {
     id: 17,
@@ -309,10 +277,8 @@ export const mockHotels = [
     ratingCount: 4321,
     price: 5000,
     originalPrice: 5000,
-    meals: "Breakfast & Dinner",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Deluxe",
-    petFriendly: true,
   },
   {
     id: 18,
@@ -327,10 +293,8 @@ export const mockHotels = [
     ratingCount: 3456,
     price: 5000,
     originalPrice: 5000,
-    meals: "Breakfast included",
     amenities: ["WiFi", "TV", "Room Service"],
     roomType: "Deluxe",
-    petFriendly: false,
   },
 ];
 

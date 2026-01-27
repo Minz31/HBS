@@ -47,8 +47,9 @@ public class DataLoader implements CommandLineRunner {
 
         // Create only one test user
         User testUser = new User("Test", "User", "test@test.com", 
-                passwordEncoder.encode("test123"), LocalDate.of(1990, 1, 1), 0, "1234567890");
+                passwordEncoder.encode("test123"), LocalDate.of(1990, 1, 1), 0, "1234567890", "Test Address");
         testUser.setUserRole(UserRole.ROLE_CUSTOMER);
+        testUser.setAccountStatus("ACTIVE");
         
         userRepository.save(testUser);
         log.info("Test user created: test@test.com / test123");
@@ -56,16 +57,19 @@ public class DataLoader implements CommandLineRunner {
 
     private List<User> createUsers() {
         User admin = new User("Admin", "User", "admin@stays.in", 
-                passwordEncoder.encode("admin123"), LocalDate.of(1990, 1, 1), 0, "1234567890");
+                passwordEncoder.encode("admin123"), LocalDate.of(1990, 1, 1), 0, "1234567890", "Admin Address");
         admin.setUserRole(UserRole.ROLE_ADMIN);
+        admin.setAccountStatus("ACTIVE");
 
         User customer = new User("John", "Customer", "user@stays.in", 
-                passwordEncoder.encode("password123"), LocalDate.of(1995, 5, 15), 0, "9876543210");
+                passwordEncoder.encode("password123"), LocalDate.of(1995, 5, 15), 0, "9876543210", "Customer Address");
         customer.setUserRole(UserRole.ROLE_CUSTOMER);
+        customer.setAccountStatus("ACTIVE");
 
         User hotelManager = new User("Hotel", "Manager", "owner@stays.in", 
-                passwordEncoder.encode("owner123"), LocalDate.of(1985, 3, 10), 0, "5555555555");
+                passwordEncoder.encode("owner123"), LocalDate.of(1985, 3, 10), 0, "5555555555", "Manager Address");
         hotelManager.setUserRole(UserRole.ROLE_HOTEL_MANAGER);
+        hotelManager.setAccountStatus("ACTIVE");
 
         return Arrays.asList(admin, customer, hotelManager);
     }
@@ -81,9 +85,9 @@ public class DataLoader implements CommandLineRunner {
         hotel1.setRatingText("Excellent");
         hotel1.setDistance("5.1 km to City centre");
         hotel1.setLocation("Marine Drive, Mumbai");
-        hotel1.setPetFriendly(false);
-        hotel1.setMeals("Breakfast included");
         hotel1.setDescription("Luxury hotel with ocean views");
+        hotel1.setStatus("APPROVED");
+        hotel1.setPriceRange("₹15,000 - ₹50,000");
 
         Hotel hotel2 = new Hotel();
         hotel2.setName("The Grand Palace");
@@ -95,9 +99,9 @@ public class DataLoader implements CommandLineRunner {
         hotel2.setRatingText("Exceptional");
         hotel2.setDistance("3.2 km to City centre");
         hotel2.setLocation("City Palace Road, Jaipur");
-        hotel2.setPetFriendly(false);
-        hotel2.setMeals("All meals included");
         hotel2.setDescription("Palace hotel with royal heritage");
+        hotel2.setStatus("APPROVED");
+        hotel2.setPriceRange("₹30,000 - ₹80,000");
 
         return Arrays.asList(hotel1, hotel2);
     }

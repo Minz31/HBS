@@ -45,17 +45,26 @@ public class User extends BaseEntity {
     // no annotation required for modern java date times
     private LocalDate dob;
     @Column(name = "reg_amount")
-    private int regAmount;
+    private Integer regAmount;
     @Enumerated(EnumType.STRING) // column type - varchar | Enum
     @Column(name = "user_role")
     private UserRole userRole;
     @Column(unique = true, length = 14)
     private String phone;
+    @Column(length = 255)
+    private String address;
     @Lob // column type - for Mysql : longblob
     private byte[] image;
 
-    public User(String firstName, String lastName, String email, String password, LocalDate dob, int regAmount,
-            String phone) {
+    // Account management fields
+    @Column(name = "account_status")
+    private String accountStatus; // ACTIVE, SUSPENDED
+
+    @Column(name = "suspension_reason")
+    private String suspensionReason;
+
+    public User(String firstName, String lastName, String email, String password, LocalDate dob, Integer regAmount,
+            String phone, String address) {
         super();
         this.firstName = firstName;
         this.lastName = lastName;
@@ -64,6 +73,7 @@ public class User extends BaseEntity {
         this.dob = dob;
         this.regAmount = regAmount;
         this.phone = phone;
+        this.address = address;
     }
 
 }

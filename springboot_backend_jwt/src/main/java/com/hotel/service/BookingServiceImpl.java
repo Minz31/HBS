@@ -83,6 +83,11 @@ public class BookingServiceImpl implements BookingService {
             booking.setBookingReference("HB-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
             booking.setBookingDate(LocalDate.now());
             
+            // Set payment details - default to PENDING
+            booking.setPaymentStatus("PENDING");
+            booking.setPaymentMethod(bookingDTO.getPaymentMethod() != null ? bookingDTO.getPaymentMethod() : "CREDIT_CARD");
+            booking.setTransactionId("TXN-" + UUID.randomUUID().toString().substring(0, 12).toUpperCase());
+            
             // Set guest details
             booking.setGuestFirstName(bookingDTO.getGuestFirstName() != null ? bookingDTO.getGuestFirstName() : user.getFirstName());
             booking.setGuestLastName(bookingDTO.getGuestLastName() != null ? bookingDTO.getGuestLastName() : user.getLastName());
@@ -226,6 +231,9 @@ public class BookingServiceImpl implements BookingService {
         dto.setGuestLastName(booking.getGuestLastName());
         dto.setGuestEmail(booking.getGuestEmail());
         dto.setGuestPhone(booking.getGuestPhone());
+        dto.setPaymentStatus(booking.getPaymentStatus());
+        dto.setPaymentMethod(booking.getPaymentMethod());
+        dto.setTransactionId(booking.getTransactionId());
         return dto;
     }
 }

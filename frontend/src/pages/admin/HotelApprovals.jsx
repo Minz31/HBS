@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminLayout from '../../layouts/AdminLayout';
 import {
     FaHotel,
@@ -11,131 +11,95 @@ import {
     FaStar,
     FaBed,
 } from 'react-icons/fa';
+import { adminAPI } from '../../services/completeAPI';
 
 const HotelApprovals = () => {
     const [selectedHotel, setSelectedHotel] = useState(null);
     const [filter, setFilter] = useState('pending');
+    const [hotels, setHotels] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Mock data for pending hotels
-    const [hotels, setHotels] = useState([
-        {
-            id: 1,
-            name: 'Sunset Beach Resort',
-            location: 'Calangute, Goa',
-            owner: 'Raj Kumar',
-            email: 'raj@sunset.com',
-            phone: '+91 98765 43210',
-            rooms: 45,
-            submittedDate: '2026-01-23',
-            status: 'pending',
-            description: 'A beautiful beachfront resort with stunning sunset views. Features include pool, spa, restaurant, and direct beach access.',
-            amenities: ['Pool', 'Spa', 'Restaurant', 'Beach Access', 'WiFi', 'Parking'],
-            images: [
-                'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&q=60',
-            ],
-            priceRange: '₹5,000 - ₹15,000',
-        },
-        {
-            id: 2,
-            name: 'Mountain View Lodge',
-            location: 'Mall Road, Shimla',
-            owner: 'Priya Sharma',
-            email: 'priya@mvl.com',
-            phone: '+91 87654 32109',
-            rooms: 28,
-            submittedDate: '2026-01-22',
-            status: 'pending',
-            description: 'Cozy mountain lodge offering breathtaking views of the Himalayas. Perfect for families and couples.',
-            amenities: ['Fireplace', 'Restaurant', 'Room Service', 'WiFi', 'Heating'],
-            images: [
-                'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=800&q=60',
-            ],
-            priceRange: '₹3,500 - ₹8,000',
-        },
-        {
-            id: 3,
-            name: 'City Center Business Hotel',
-            location: 'Andheri, Mumbai',
-            owner: 'Amit Patel',
-            email: 'amit@ccbh.com',
-            phone: '+91 76543 21098',
-            rooms: 120,
-            submittedDate: '2026-01-21',
-            status: 'pending',
-            description: 'Modern business hotel in the heart of Mumbai. Close to airport and business districts.',
-            amenities: ['Business Center', 'Conference Rooms', 'Gym', 'Restaurant', 'WiFi', 'Airport Shuttle'],
-            images: [
-                'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=60',
-            ],
-            priceRange: '₹4,500 - ₹12,000',
-        },
-        {
-            id: 4,
-            name: 'Heritage Palace Hotel',
-            location: 'Civil Lines, Jaipur',
-            owner: 'Vikram Singh',
-            email: 'vikram@hph.com',
-            phone: '+91 65432 10987',
-            rooms: 65,
-            submittedDate: '2026-01-20',
-            status: 'approved',
-            description: 'A royal heritage property offering authentic Rajasthani hospitality and architecture.',
-            amenities: ['Pool', 'Spa', 'Restaurant', 'Cultural Shows', 'WiFi', 'Valet Parking'],
-            images: [
-                'https://images.unsplash.com/photo-1501117716987-c8eab037d85b?w=800&q=60',
-            ],
-            priceRange: '₹8,000 - ₹25,000',
-        },
-        {
-            id: 5,
-            name: 'Backwater Houseboat Stay',
-            location: 'Alleppey, Kerala',
-            owner: 'Thomas Kurian',
-            email: 'thomas@bhs.com',
-            phone: '+91 54321 09876',
-            rooms: 8,
-            submittedDate: '2026-01-19',
-            status: 'rejected',
-            description: 'Unique houseboat experience on the famous Kerala backwaters.',
-            amenities: ['AC Rooms', 'Kitchen', 'Deck', 'Fishing', 'Traditional Meals'],
-            images: [
-                'https://images.unsplash.com/photo-1544644181-1484b3fdfc32?w=800&q=60',
-            ],
-            priceRange: '₹6,000 - ₹10,000',
-            rejectionReason: 'Safety compliance documents missing',
-        },
-    ]);
+    // Load hotels from API
+    useEffect(() => {
+        loadHotels();
+    }, [filter]);
 
-    // Filter hotels based on status
-    const filteredHotels = hotels.filter(hotel => {
-        if (filter === 'all') return true;
-        return hotel.status === filter;
-    });
+    const loadHotels = async () => {
+        setLoading(true);
+        try {
+            let data;
+            if (filter === 'pending') {
+                data = await adminAPI.getPendingHotels();
+            } else if (filter === 'approved') {
+                data = await adminAPI.getApprovedHotels();
+            } else if (filter === 'rejected') {
+                data = await adminAPI.getRejectedHotels();
+            } else {
+                // Get all hotels
+                const [pending, approved, rejected] = await Promise.all([
+                    adminAPI.getPendingHotels(),
+                    adminAPI.getApprovedHotels(),
+                    adminAPI.getRejectedHotels()
+                ]);
+                data = [...pending, ...approved, ...rejected];
+            }
+            
+            // Helper to parse JSON fields safely
+            const parseHotelData = (h) => ({
+                ...h,
+                amenities: typeof h.amenities === 'string' ? JSON.parse(h.amenities || '[]') : (h.amenities || []),
+                images: typeof h.images === 'string' ? JSON.parse(h.images || '[]') : (h.images || []),
+            });
 
+            setHotels(Array.isArray(data) ? data.map(parseHotelData) : []);
+        } catch (error) {
+            console.error('Error loading hotels:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
     // Approve hotel
-    const handleApprove = (hotelId) => {
-        setHotels(prev => prev.map(hotel => 
-            hotel.id === hotelId ? { ...hotel, status: 'approved' } : hotel
-        ));
-        setSelectedHotel(null);
+    const handleApprove = async (hotelId) => {
+        try {
+            await adminAPI.approveHotel(hotelId);
+            alert('Hotel approved successfully!');
+            loadHotels(); // Reload list
+            setSelectedHotel(null);
+        } catch (error) {
+            console.error('Error approving hotel:', error);
+            alert('Failed to approve hotel');
+        }
     };
 
     // Reject hotel
-    const handleReject = (hotelId) => {
+    const handleReject = async (hotelId) => {
         const reason = prompt('Please enter rejection reason:');
         if (reason) {
-            setHotels(prev => prev.map(hotel => 
-                hotel.id === hotelId ? { ...hotel, status: 'rejected', rejectionReason: reason } : hotel
-            ));
-            setSelectedHotel(null);
+            try {
+                await adminAPI.rejectHotel(hotelId, reason);
+                alert('Hotel rejected successfully!');
+                loadHotels(); // Reload list
+                setSelectedHotel(null);
+            } catch (error) {
+                console.error('Error rejecting hotel:', error);
+                alert('Failed to reject hotel');
+            }
         }
     };
 
     // Remove hotel
-    const handleRemove = (hotelId) => {
+    const handleRemove = async (hotelId) => {
         if (confirm('Are you sure you want to permanently remove this hotel?')) {
-            setHotels(prev => prev.filter(hotel => hotel.id !== hotelId));
-            setSelectedHotel(null);
+            try {
+                // Note: You may need to add a delete endpoint in AdminController
+                alert('Remove functionality not yet implemented in backend');
+                // await adminAPI.deleteHotel(hotelId);
+                // loadHotels();
+                setSelectedHotel(null);
+            } catch (error) {
+                console.error('Error removing hotel:', error);
+                alert('Failed to remove hotel');
+            }
         }
     };
 
@@ -178,8 +142,14 @@ const HotelApprovals = () => {
                     </div>
 
                     {/* Hotels Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {filteredHotels.map((hotel) => (
+                    {loading ? (
+                        <div className="text-center py-16">
+                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading hotels...</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {hotels.map((hotel) => (
                             <div
                                 key={hotel.id}
                                 className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700 transition-all hover:shadow-xl"
@@ -207,19 +177,19 @@ const HotelApprovals = () => {
                                     <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
                                         <p className="flex items-center gap-2">
                                             <FaMapMarkerAlt className="text-blue-500" />
-                                            {hotel.location}
+                                            {hotel.city}, {hotel.state}
                                         </p>
                                         <p className="flex items-center gap-2">
                                             <FaUser className="text-blue-500" />
-                                            {hotel.owner} • {hotel.email}
+                                            {hotel.owner?.firstName} {hotel.owner?.lastName} • {hotel.owner?.email}
                                         </p>
                                         <p className="flex items-center gap-2">
                                             <FaBed className="text-blue-500" />
-                                            {hotel.rooms} Rooms • {hotel.priceRange}
+                                            {hotel.totalRooms || 0} Rooms • {hotel.priceRange || 'N/A'}
                                         </p>
                                         <p className="flex items-center gap-2">
                                             <FaCalendarAlt className="text-blue-500" />
-                                            Submitted: {hotel.submittedDate}
+                                            Submitted: {new Date(hotel.createdAt).toLocaleDateString()}
                                         </p>
                                     </div>
 
@@ -274,10 +244,11 @@ const HotelApprovals = () => {
                                 </div>
                             </div>
                         ))}
-                    </div>
+                        </div>
+                    )}
 
                     {/* Empty State */}
-                    {filteredHotels.length === 0 && (
+                    {!loading && hotels.length === 0 && (
                         <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border dark:border-gray-700">
                             <FaHotel className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
                             <h3 className="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">No Hotels Found</h3>
@@ -335,11 +306,11 @@ const HotelApprovals = () => {
                             <div className="grid grid-cols-2 gap-4 mb-6">
                                 <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
                                     <p className="text-sm text-gray-500 dark:text-gray-400">Owner</p>
-                                    <p className="font-semibold dark:text-white">{selectedHotel.owner}</p>
+                                    <p className="font-semibold dark:text-white">{hotel.owner?.firstName} {hotel.owner?.lastName}</p>
                                 </div>
                                 <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
                                     <p className="text-sm text-gray-500 dark:text-gray-400">Contact</p>
-                                    <p className="font-semibold dark:text-white">{selectedHotel.phone}</p>
+                                    <p className="font-semibold dark:text-white">{hotel.owner?.phoneNumber || 'N/A'}</p>
                                 </div>
                                 <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
                                     <p className="text-sm text-gray-500 dark:text-gray-400">Rooms</p>

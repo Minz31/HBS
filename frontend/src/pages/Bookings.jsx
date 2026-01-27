@@ -18,6 +18,7 @@ import { useAuth } from "../context/AuthContext";
 import { useReviews } from "../context/ReviewsContext";
 import AccountLayout from "../components/AccountLayout";
 import { downloadInvoice } from "../utils/bookingUtils";
+import customerAPI from "../services/customerAPI";
 
 const currency = (v) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
@@ -43,81 +44,51 @@ const Bookings = () => {
     comment: ''
   });
 
-  // Load bookings from localStorage
+  // Load bookings from backend API
   useEffect(() => {
     if (isAuthenticated) {
-      const saved = localStorage.getItem("bookings");
-      if (saved) {
-        setBookings(JSON.parse(saved));
-      } else {
-        // Mock bookings for demo
-        const mockBookings = [
-          {
-            id: 1,
-            hotel: "Taj Lands End",
-            city: "Mumbai",
-            roomType: "Ocean View Room",
-            checkIn: "2026-01-10",
-            checkOut: "2026-01-13",
-            guests: 2,
-            rooms: 1,
-            price: 55500,
-            status: "completed",
-            bookingDate: "2026-01-05",
-            image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=60",
-            reviewed: false
-          },
-          {
-            id: 2,
-            hotel: "The Oberoi Udaivilas",
-            city: "Udaipur",
-            roomType: "Premier Lake View Room",
-            checkIn: "2026-02-10",
-            checkOut: "2026-02-14",
-            guests: 2,
-            rooms: 1,
-            price: 180000,
-            status: "confirmed",
-            bookingDate: "2026-01-22",
-            image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=60",
-            reviewed: false
-          },
-          {
-            id: 3,
-            hotel: "ITC Grand Chola",
-            city: "Chennai",
-            roomType: "Grand Club Room",
-            checkIn: "2026-01-05",
-            checkOut: "2026-01-08",
-            guests: 2,
-            rooms: 1,
-            price: 42000,
-            status: "completed",
-            bookingDate: "2025-12-28",
-            image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=60",
-            reviewed: true,
-            review: {
-              rating: 5,
-              title: "Amazing stay!",
-              comment: "Exceptional service and beautiful property."
-            }
-          },
-        ];
-        setBookings(mockBookings);
-        localStorage.setItem("bookings", JSON.stringify(mockBookings));
-      }
+      fetchUserBookings();
     }
   }, [isAuthenticated]);
 
+  const fetchUserBookings = async () => {
+    try {
+      const response = await customerAPI.bookingsPage.loadBookings();
+      const backendBookings = response.map(booking => ({
+        id: booking.id,
+        hotel: booking.hotelName,
+        city: booking.hotelCity,
+        roomType: booking.roomTypeName,
+        checkIn: booking.checkInDate,
+        checkOut: booking.checkOutDate,
+        guests: booking.adults + booking.children,
+        rooms: booking.rooms,
+        price: booking.totalPrice,
+        status: booking.status.toLowerCase(),
+        bookingDate: booking.bookingDate,
+        bookingReference: booking.bookingReference,
+        image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=60",
+        reviewed: false
+      }));
+      setBookings(backendBookings);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      // Fallback to empty array if API fails
+      setBookings([]);
+    }
+  };
+
   // Cancel booking
-  const handleCancelBooking = () => {
-    const updated = bookings.map(b => 
-      b.id === selectedBooking.id ? { ...b, status: 'cancelled' } : b
-    );
-    setBookings(updated);
-    localStorage.setItem("bookings", JSON.stringify(updated));
-    setShowCancelModal(false);
-    setSelectedBooking(null);
+  const handleCancelBooking = async () => {
+    try {
+      await customerAPI.bookingsPage.cancelBooking(selectedBooking.id);
+      await fetchUserBookings(); // Refresh bookings
+      setShowCancelModal(false);
+      setSelectedBooking(null);
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      alert('Failed to cancel booking. Please try again.');
+    }
   };
 
   // Open edit modal

@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronRightIcon, ClockIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
-import { getHotelById } from "../data/mockData";
-import { useReviews } from "../context/ReviewsContext";
+import customerAPI from '../services/customerAPI';
+import { useAuth } from '../context/AuthContext';
 import { FaStar } from "react-icons/fa";
 
 const currency = (v) =>
@@ -64,31 +64,37 @@ const RecentlyViewedHotels = () => {
   const [recentHotels, setRecentHotels] = useState([]);
   const scrollerRef = useRef(null);
   const navigate = useNavigate();
-  const { getHotelRating } = useReviews();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    const loadRecentlyViewed = () => {
-      const recentIds = JSON.parse(localStorage.getItem("recentlyViewedHotels") || "[]");
-      const hotels = recentIds
-        .map((id) => getHotelById(id))
-        .filter(Boolean)
-        .slice(0, 10); // Show max 10 recently viewed
-      setRecentHotels(hotels);
+    if (isAuthenticated) {
+      loadRecentlyViewed();
+    }
+    
+    // Listen for hotel viewed events
+    const handleHotelViewed = () => {
+      if (isAuthenticated) {
+        loadRecentlyViewed();
+      }
     };
+    
+    window.addEventListener('hotelViewed', handleHotelViewed);
+    return () => window.removeEventListener('hotelViewed', handleHotelViewed);
+  }, [isAuthenticated]);
 
-    loadRecentlyViewed();
-
-    // Listen for updates
-    window.addEventListener("hotelViewed", loadRecentlyViewed);
-    window.addEventListener("storage", loadRecentlyViewed);
-    window.addEventListener("reviewAdded", loadRecentlyViewed);
-
-    return () => {
-      window.removeEventListener("hotelViewed", loadRecentlyViewed);
-      window.removeEventListener("storage", loadRecentlyViewed);
-      window.removeEventListener("reviewAdded", loadRecentlyViewed);
-    };
-  }, []);
+  const loadRecentlyViewed = async () => {
+    try {
+      const hotels = await customerAPI.recentlyViewed.get();
+      setRecentHotels(hotels.slice(0, 10));
+    } catch (error) {
+      console.error('Error loading recently viewed hotels:', error);
+      // Fallback to localStorage
+      const viewedIds = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
+      const { mockHotels } = await import('../data/mockData');
+      const viewedHotels = viewedIds.map(id => mockHotels.find(h => h.id === id)).filter(Boolean);
+      setRecentHotels(viewedHotels.slice(0, 10));
+    }
+  };
 
   const scrollRight = () => {
     if (scrollerRef.current) {
@@ -124,7 +130,7 @@ const RecentlyViewedHotels = () => {
               key={hotel.id}
               hotel={hotel}
               onClick={() => handleHotelClick(hotel)}
-              userRating={getHotelRating(hotel.id)}
+              userRating={{ score: hotel.rating || 4.0, text: hotel.ratingText || 'Good', count: hotel.ratingCount || 0 }}
             />
           ))}
         </div>
@@ -143,22 +149,20 @@ const RecentlyViewedHotels = () => {
 };
 
 // Helper function to add a hotel to recently viewed
-export const addToRecentlyViewed = (hotelId) => {
-  const recentIds = JSON.parse(localStorage.getItem("recentlyViewedHotels") || "[]");
-  
-  // Remove if already exists (to move to front)
-  const filtered = recentIds.filter((id) => id !== hotelId);
-  
-  // Add to front
-  filtered.unshift(hotelId);
-  
-  // Keep only last 10
-  const limited = filtered.slice(0, 10);
-  
-  localStorage.setItem("recentlyViewedHotels", JSON.stringify(limited));
-  
-  // Dispatch event to update UI
-  window.dispatchEvent(new Event("hotelViewed"));
+export const addToRecentlyViewed = async (hotelId) => {
+  try {
+    await customerAPI.recentlyViewed.add(hotelId);
+    // Dispatch event to update UI
+    window.dispatchEvent(new Event("hotelViewed"));
+  } catch (error) {
+    console.error('Error adding to recently viewed:', error);
+    // Fallback to localStorage if API fails
+    const viewed = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
+    const filtered = viewed.filter(id => id !== hotelId);
+    filtered.unshift(hotelId);
+    localStorage.setItem('recentlyViewed', JSON.stringify(filtered.slice(0, 10)));
+    window.dispatchEvent(new Event("hotelViewed"));
+  }
 };
 
 export default RecentlyViewedHotels;

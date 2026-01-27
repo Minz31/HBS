@@ -48,7 +48,6 @@ const SearchBar = ({ initialValues }) => {
       rooms: String(overrideParams.rooms ?? rooms),
       start: format(overrideParams.startDate ?? dateRange[0].startDate, "dd MMM"),
       end: format(overrideParams.endDate ?? dateRange[0].endDate, "dd MMM"),
-      pets: String(overrideParams.pets ?? petsAllowed),
     });
     
     // Only navigate if we have a destination
@@ -68,7 +67,6 @@ const SearchBar = ({ initialValues }) => {
   const [adults, setAdults] = useState(Number(initialValues?.adults) || 2);
   const [children, setChildren] = useState(Number(initialValues?.children) || 0);
   const [rooms, setRooms] = useState(Number(initialValues?.rooms) || 1);
-  const [petsAllowed, setPetsAllowed] = useState(initialValues?.pets === "true" || false);
 
   // Auto-changing label animation
   useEffect(() => {
@@ -93,7 +91,6 @@ const SearchBar = ({ initialValues }) => {
       if (initialValues.adults !== undefined) setAdults(Number(initialValues.adults) || 2);
       if (initialValues.children !== undefined) setChildren(Number(initialValues.children) || 0);
       if (initialValues.rooms !== undefined) setRooms(Number(initialValues.rooms) || 1);
-      if (initialValues.pets !== undefined) setPetsAllowed(initialValues.pets === "true" || false);
       
       if (initialValues.start && initialValues.end) {
         setDateRange([
@@ -179,7 +176,6 @@ const SearchBar = ({ initialValues }) => {
                     rooms: String(rooms),
                     start: format(dateRange[0].startDate, "dd MMM"),
                     end: format(dateRange[0].endDate, "dd MMM"),
-                    pets: String(petsAllowed),
                   });
                   navigate(`/search?${params.toString()}`);
                 }
@@ -301,7 +297,6 @@ const SearchBar = ({ initialValues }) => {
               rooms: String(rooms),
               start: format(dateRange[0].startDate, "dd MMM"),
               end: format(dateRange[0].endDate, "dd MMM"),
-              pets: String(petsAllowed),
             });
             navigate(`/search?${params.toString()}`);
           }}
@@ -362,17 +357,6 @@ const SearchBar = ({ initialValues }) => {
             </div>
           </div>
 
-          {/* Pets */}
-          <div className="flex items-center gap-3 mb-6">
-            <input
-              type="checkbox"
-              checked={petsAllowed}
-              onChange={() => setPetsAllowed(!petsAllowed)}
-              className="w-4 h-4 accent-blue-600"
-            />
-            <span className="dark:text-white">Pet-friendly stays only</span>
-          </div>
-
           {/* Buttons */}
           <div className="flex justify-between">
             <button
@@ -380,7 +364,6 @@ const SearchBar = ({ initialValues }) => {
                 setAdults(2);
                 setChildren(0);
                 setRooms(1);
-                setPetsAllowed(false);
               }}
               className="text-gray-400 font-semibold hover:text-gray-600 transition-colors"
             >

@@ -73,4 +73,14 @@ public class Booking extends BaseEntity {
 
     @Column(name = "guest_phone")
     private String guestPhone;
+
+    // Payment fields
+    @Column(name = "payment_status")
+    private String paymentStatus; // PENDING, COMPLETED, FAILED
+
+    @Column(name = "payment_method")
+    private String paymentMethod; // CREDIT_CARD, UPI, NET_BANKING
+
+    @Column(name = "transaction_id")
+    private String transactionId;
 }

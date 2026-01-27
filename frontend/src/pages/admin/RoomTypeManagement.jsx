@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import OwnerLayout from '../../layouts/OwnerLayout';
+import { useHotel } from '../../context/HotelContext';
+import { ownerRoomManagement } from '../../services/completeAPI';
 import { 
   PlusIcon, 
   PencilIcon, 
@@ -12,52 +14,30 @@ import {
 import { FaBed, FaSnowflake, FaFan } from 'react-icons/fa';
 
 const RoomTypeManagement = () => {
-  const [roomTypes, setRoomTypes] = useState([
-    {
-      id: 1,
-      name: 'Standard',
-      type: 'Non-AC',
-      beds: '2 Single Beds',
-      capacity: 2,
-      available: 10,
-      total: 15,
-      amenities: ['WiFi', 'TV', 'Room Service'],
-      description: 'Comfortable room with basic amenities'
-    },
-    {
-      id: 4,
-      name: 'Family',
-      type: 'AC',
-      beds: '4 Beds',
-      capacity: 4,
-      available: 2,
-      total: 5,
-      amenities: ['WiFi', 'TV', 'Room Service'],
-      description: 'Perfect for families'
-    },
-    {
-      id: 2,
-      name: 'Standard AC',
-      type: 'AC',
-      beds: '2 Single Beds',
-      capacity: 2,
-      available: 8,
-      total: 12,
-      amenities: ['WiFi', 'TV', 'Room Service'],
-      description: 'Modern room with air conditioning'
-    },
-    {
-      id: 3,
-      name: 'Deluxe',
-      type: 'AC',
-      beds: '1 King Bed',
-      capacity: 2,
-      available: 5,
-      total: 8,
-      amenities: ['WiFi', 'TV', 'Room Service'],
-      description: 'Spacious deluxe room with premium amenities'
+  const { selectedHotel } = useHotel();
+  const [roomTypes, setRoomTypes] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (selectedHotel) {
+        fetchRoomTypes();
     }
-  ]);
+  }, [selectedHotel]);
+
+  const fetchRoomTypes = async () => {
+      setIsLoading(true);
+      try {
+          const data = await ownerRoomManagement.getRooms(selectedHotel.id);
+          setRoomTypes(data.map(rt => ({
+              ...rt,
+              amenities: typeof rt.amenities === 'string' ? JSON.parse(rt.amenities) : (rt.amenities || []),
+          })));
+      } catch (error) {
+          console.error("Failed to fetch room types", error);
+      } finally {
+          setIsLoading(false);
+      }
+  };
 
   const [showModal, setShowModal] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
@@ -84,7 +64,8 @@ const RoomTypeManagement = () => {
       type: 'Non-AC',
       beds: '2 Single Beds',
       capacity: 2,
-      total: 0,
+      totalRooms: 0,
+      pricePerNight: '',
       amenities: ['WiFi', 'TV', 'Room Service'],
       description: ''
     });
@@ -95,34 +76,42 @@ const RoomTypeManagement = () => {
     setEditingRoom(room);
     setFormData({
       name: room.name,
-      type: room.type,
-      beds: room.beds,
+      type: room.description && room.description.includes('AC') ? 'AC' : 'Non-AC',
+      beds: '2 Single Beds',
       capacity: room.capacity,
-      price: room.price,
-      total: room.total,
+      pricePerNight: room.pricePerNight,
+      totalRooms: room.totalRooms || 0,
       amenities: room.amenities,
       description: room.description
     });
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingRoom) {
-      setRoomTypes(roomTypes.map(r => 
-        r.id === editingRoom.id 
-          ? { ...r, ...formData, available: Math.min(r.available, formData.total) }
-          : r
-      ));
-    } else {
-      const newRoom = {
-        id: Date.now(),
-        ...formData,
-        available: formData.total
-      };
-      setRoomTypes([...roomTypes, newRoom]);
+    if (!selectedHotel) return;
+
+    try {
+        const payload = {
+            ...formData,
+            totalRooms: parseInt(formData.totalRooms),
+            capacity: parseInt(formData.capacity),
+            pricePerNight: parseFloat(formData.pricePerNight),
+            amenities: formData.amenities,
+            images: [],
+        };
+
+        if (editingRoom) {
+            await ownerRoomManagement.updateRoom(selectedHotel.id, editingRoom.id, payload);
+        } else {
+            await ownerRoomManagement.addRoom(selectedHotel.id, payload);
+        }
+        await fetchRoomTypes();
+        setShowModal(false);
+    } catch (error) {
+        console.error("Failed to save room type", error);
+        alert("Failed to save: " + error.message);
     }
-    setShowModal(false);
   };
 
   const confirmDelete = (room) => {
@@ -130,10 +119,17 @@ const RoomTypeManagement = () => {
     setShowDeleteModal(true);
   };
 
-  const deleteRoom = () => {
-    setRoomTypes(roomTypes.filter(r => r.id !== roomToDelete.id));
-    setShowDeleteModal(false);
-    setRoomToDelete(null);
+  const deleteRoom = async () => {
+    if (!selectedHotel || !roomToDelete) return;
+    try {
+        await ownerRoomManagement.deleteRoom(selectedHotel.id, roomToDelete.id);
+        await fetchRoomTypes();
+        setShowDeleteModal(false);
+        setRoomToDelete(null);
+    } catch (error) {
+         console.error("Failed to delete room type", error);
+         alert("Failed to delete: " + error.message);
+    }
   };
 
   const toggleAmenity = (amenity) => {
@@ -220,9 +216,9 @@ const RoomTypeManagement = () => {
                       <p className="font-semibold dark:text-white">{room.capacity} Guests</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Available / Total</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Total Rooms</p>
                       <p className="font-semibold dark:text-white">
-                        <span className="text-green-600 dark:text-green-400">{room.available}</span> / {room.total}
+                        {room.totalRooms}
                       </p>
                     </div>
 
@@ -319,10 +315,21 @@ const RoomTypeManagement = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Capacity *</label>
                   <input
                     type="number"
-                    disabled
                     value={formData.capacity}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-600 dark:text-gray-400 cursor-not-allowed"
+                    onChange={(e) => setFormData({...formData, capacity: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-yellow-400"
                   />
+                </div>
+
+                <div>
+                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price (₹) *</label>
+                   <input
+                    type="number"
+                    required
+                    value={formData.pricePerNight}
+                    onChange={(e) => setFormData({...formData, pricePerNight: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-yellow-400"
+                   />
                 </div>
 
                 <div>

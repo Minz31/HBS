@@ -16,11 +16,13 @@ public interface HotelService {
 
     List<RoomType> getHotelRooms(Long hotelId);
 
-    Hotel createHotel(HotelDTO hotelDTO);
+    Boolean checkRoomAvailability(Long hotelId, Long roomTypeId, String checkIn, String checkOut, Integer rooms);
 
-    Hotel updateHotel(Long id, HotelDTO hotelDTO);
+    Hotel addNewHotel(HotelDTO hotelDTO, String ownerEmail);
 
-    com.hotel.dtos.ApiResponse deleteHotel(Long id);
+    List<Hotel> getHotelsByStatus(String status);
 
-    RoomType addRoomType(Long hotelId, RoomTypeDTO roomTypeDTO);
+    Hotel updateHotelStatus(Long hotelId, String status);
+
+    List<com.hotel.dtos.DestinationDTO> getPopularDestinations(String type); // type: city, state
 }

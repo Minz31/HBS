@@ -15,6 +15,7 @@ public class RoomTypeDTO {
     @NotNull
     private BigDecimal pricePerNight;
     private Integer capacity;
+    private Integer totalRooms;
     private List<String> amenities;
     private List<String> images;
 }

@@ -1,24 +1,14 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { HeartIcon, MapPinIcon, ShoppingCartIcon } from "@heroicons/react/24/solid";
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import SearchBar from "../components/SearchBar";
-import { mockHotels } from "../data/mockData";
 import { addToRecentlyViewed } from "../components/RecentlyViewedHotels";
-
-
-
 import { calculateNights, currency, getCappedPrice } from "../utils/bookingUtils";
+import customerAPI from "../services/customerAPI";
 
-const parseKm = (distanceText) => {
-  if (!distanceText) return null;
-  const match = String(distanceText).match(/([\d.]+)\s*km/i);
-  return match ? Number(match[1]) : null;
-};
-
-const FilterChip = ({ children, active, onClick }) => (
+const SortChip = ({ children, active, onClick }) => (
   <button 
     onClick={onClick}
     className={`px-3 py-2 border dark:border-gray-700 rounded-full text-sm transition font-medium ${active
@@ -35,11 +25,24 @@ const ResultCard = ({ item, onAddToCart, nights = 1, rooms = 1 }) => {
   const totalPrice = item.price * nights * rooms;
   const totalOriginal = item.originalPrice * nights * rooms;
 
+  const handleCardClick = () => {
+    // Track hotel view only if user is authenticated
+    if (window.localStorage.getItem('token')) {
+      addToRecentlyViewed(item.id);
+    }
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 shadow-sm p-4 flex gap-4 hover:shadow-md transition-colors">
+    <div 
+      className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 shadow-sm p-4 flex gap-4 hover:shadow-md transition-colors cursor-pointer"
+      onClick={handleCardClick}
+    >
       <div className="relative">
         <img src={item.image} alt={item.name} className="w-52 h-40 object-cover rounded-lg" />
-        <button className="absolute top-2 right-2 p-1.5 bg-white dark:bg-gray-700 rounded-full shadow hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+        <button 
+          className="absolute top-2 right-2 p-1.5 bg-white dark:bg-gray-700 rounded-full shadow hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
           <HeartIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400" />
         </button>
         {discount > 0 && (
@@ -70,11 +73,6 @@ const ResultCard = ({ item, onAddToCart, nights = 1, rooms = 1 }) => {
               <span className="text-gray-500 dark:text-gray-400 text-sm">({item.ratingCount.toLocaleString()} ratings)</span>
             </div>
 
-            <div className="mt-2 flex items-center gap-2">
-              <CheckCircleIcon className="h-4 w-4 text-green-600 dark:text-green-500" />
-              <span className="text-sm text-green-700 dark:text-green-400 font-medium">{item.meals}</span>
-            </div>
-
             <div className="mt-2 flex flex-wrap gap-2">
               {item.amenities.slice(0, 4).map((amenity) => (
                 <span key={amenity} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs">
@@ -91,7 +89,10 @@ const ResultCard = ({ item, onAddToCart, nights = 1, rooms = 1 }) => {
               {nights > 1 || rooms > 1 ? `Total stay (${nights} nights, ${rooms} rooms)` : 'per night + taxes'}
             </p>
             <button
-              onClick={() => onAddToCart(item)}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent card click
+                onAddToCart(item);
+              }}
               className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition"
             >
               <ShoppingCartIcon className="h-4 w-4" />
@@ -105,25 +106,12 @@ const ResultCard = ({ item, onAddToCart, nights = 1, rooms = 1 }) => {
 };
 
 const SearchResults = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   
-  // States for sorting and filtering
+  // State for sorting only
   const [sortBy, setSortBy] = useState("Recommended");
-  const [filterRating, setFilterRating] = useState(() => searchParams.get("rating8") === "true");
-  const [filterMeals, setFilterMeals] = useState(() => searchParams.get("meals") === "included");
-  const [filterNear, setFilterNear] = useState(() => searchParams.get("near") === "true");
-  const [filterPets, setFilterPets] = useState(() => searchParams.get("pets") === "true");
-
-  const setParam = useCallback((key, value) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (value === null || value === undefined || value === "") next.delete(key);
-      else next.set(key, String(value));
-      return next;
-    });
-  }, [setSearchParams]);
 
   const initialValues = useMemo(() => ({
     destination: searchParams.get("destination") || "",
@@ -132,54 +120,92 @@ const SearchResults = () => {
     rooms: searchParams.get("rooms"),
     start: searchParams.get("start"),
     end: searchParams.get("end"),
-    pets: searchParams.get("pets"),
   }), [searchParams]);
 
   const destination = initialValues.destination.toLowerCase().trim();
 
-  // Filter and Sort results
-  const results = useMemo(() => {
-    // 1. Filter by destination
-    let filtered = destination
-      ? mockHotels.filter(
-          (hotel) =>
-            hotel.city.toLowerCase().includes(destination) ||
-            hotel.state.toLowerCase().includes(destination)
-        )
-      : mockHotels;
+  // State for search results
+  const [searchResults, setSearchResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-    // 2. Apply additional filters
-    if (filterRating) {
-      filtered = filtered.filter(hotel => hotel.ratingScore >= 8.0);
-    }
+  // Filter and sort results
+  useEffect(() => {
+    const fetchHotels = async () => {
+      setIsLoading(true);
+      try {
+        let results = [];
+        // If destination is provided, search, otherwise get all or popular
+        if (initialValues.destination) {
+          const data = await customerAPI.searchPage.searchWithFilters({ 
+            city: initialValues.destination, 
+            destination: initialValues.destination 
+          });
+          results = data;
+        } else {
+          // If no destination, maybe show all (or handle empty state)
+          // For now, let's fetch all or handle appropriately
+           const data = await customerAPI.hotels.getAll(); // strict backend integration
+           results = data;
+        }
 
-    if (filterMeals) {
-      filtered = filtered.filter((hotel) => {
-        const m = String(hotel.meals || "").toLowerCase();
-        return m.includes("breakfast") || m.includes("meal") || m.includes("included");
-      });
-    }
+        // Map backend data to frontend format
+        const mappedResults = results.map(hotel => {
+             let parsedImages = [];
+             try {
+                parsedImages = typeof hotel.images === 'string' ? JSON.parse(hotel.images) : hotel.images;
+             } catch (e) { parsedImages = [hotel.images] } // Fallback
 
-    if (filterNear) {
-      filtered = filtered.filter((hotel) => {
-        const km = parseKm(hotel.distance);
-        return km !== null ? km <= 3 : true;
-      });
-    }
+             let parsedAmenities = [];
+             try {
+                parsedAmenities = typeof hotel.amenities === 'string' ? JSON.parse(hotel.amenities) : hotel.amenities || [];
+             } catch (e) { parsedAmenities = [] }
+             
+             // Extract price number from priceRange string if possible, else default
+             let priceVal = 5000;
+             if (hotel.priceRange) {
+                 const match = hotel.priceRange.match(/(\d+)/);
+                 if (match) priceVal = parseInt(match[0]);
+             }
 
-    if (filterPets) {
-      filtered = filtered.filter((hotel) => hotel.petFriendly === true);
-    }
+             return {
+                 id: hotel.id,
+                 name: hotel.name,
+                 city: hotel.city,
+                 state: hotel.state,
+                 image: parsedImages[0] || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=60',
+                 distance: hotel.distance || "Near City Center",
+                 location: hotel.location || `${hotel.city}, ${hotel.state}`,
+                 ratingScore: hotel.rating || 0,
+                 ratingText: hotel.ratingText || "Good",
+                 ratingCount: hotel.ratingCount || 0,
+                 price: priceVal,
+                 originalPrice: priceVal, // Backend doesn't have orig price
+                 amenities: parsedAmenities,
+                 roomType: "Standard Room", // Backend hotel entity doesn't list specific room types in search
+             };
+        });
 
-    // 3. Apply sorting
-    return [...filtered].sort((a, b) => {
-      if (sortBy === "Price: Low to High") return a.price - b.price;
-      if (sortBy === "Price: High to Low") return b.price - a.price;
-      if (sortBy === "Top Rated") return b.ratingScore - a.ratingScore;
-      if (sortBy === "Most Reviews") return b.ratingCount - a.ratingCount;
-      return 0; // Recommended
-    });
-  }, [destination, sortBy, filterRating, filterMeals, filterNear, filterPets]);
+        // 2. Apply sorting (Frontend side for now)
+        const sorted = [...mappedResults].sort((a, b) => {
+           if (sortBy === "Price: Low to High") return a.price - b.price;
+           if (sortBy === "Price: High to Low") return b.price - a.price;
+           if (sortBy === "Top Rated") return b.ratingScore - a.ratingScore;
+           return 0; // Recommended
+        });
+        
+        setSearchResults(sorted);
+
+      } catch (error) {
+        console.error("Error searching hotels:", error);
+        toast.error("Failed to load hotels");
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHotels();
+  }, [initialValues.destination, sortBy]); // Re-run when destination or sort changes
 
   const handleAddToCart = (hotel) => {
     if (!isAuthenticated) {
@@ -197,7 +223,9 @@ const SearchResults = () => {
     
     const bookingDetails = {
       hotel: hotel.name,
+      hotelId: hotel.id,
       roomType: hotel.roomType,
+      roomTypeId: hotel.roomTypeId || 1, // Default to 1 if not present in mock data
       basePrice: basePrice,
       price: basePrice * roomsCount * nights,
       checkIn: initialValues.start || "Not selected",
@@ -222,7 +250,7 @@ const SearchResults = () => {
         <SearchBar initialValues={initialValues} />
       </div>
 
-      {results.length === 0 ? (
+      {!isLoading && searchResults.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
           <div className="bg-gray-100 dark:bg-gray-800 rounded-full p-6 mb-6 transition-colors">
             <svg className="w-16 h-16 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,108 +260,53 @@ const SearchResults = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">No results found</h2>
           <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md">
-            We couldn't find any hotels matching your criteria. Try adjusting your filters or destination.
+            We couldn't find any hotels matching your search. Try a different destination.
           </p>
-          <button 
-            onClick={() => {
-              setSortBy("Recommended");
-              setFilterRating(false);
-              setFilterMeals(false);
-              setFilterNear(false);
-              setFilterPets(false);
-              setParam("rating8", null);
-              setParam("meals", null);
-              setParam("near", null);
-              setParam("pets", initialValues.pets === "true" ? "true" : null);
-            }}
-            className="text-blue-600 dark:text-blue-400 font-semibold hover:underline"
-          >
-            Clear all filters
-          </button>
         </div>
       ) : (
         <>
           <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">Sort by</span>
-              <FilterChip 
+              <SortChip 
                 active={sortBy === "Recommended"} 
                 onClick={() => setSortBy("Recommended")}
               >
                 Recommended
-              </FilterChip>
-              <FilterChip 
+              </SortChip>
+              <SortChip 
                 active={sortBy.startsWith("Price")} 
                 onClick={() => setSortBy(sortBy === "Price: Low to High" ? "Price: High to Low" : "Price: Low to High")}
               >
                 Price {sortBy === "Price: Low to High" ? "↑" : sortBy === "Price: High to Low" ? "↓" : ""}
-              </FilterChip>
-              <FilterChip 
+              </SortChip>
+              <SortChip 
                 active={sortBy === "Top Rated"} 
                 onClick={() => setSortBy("Top Rated")}
               >
                 Top Rated
-              </FilterChip>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm text-gray-600 dark:text-gray-400 font-medium ml-2">Filter</span>
-              <FilterChip 
-                active={filterRating} 
-                onClick={() => {
-                  const next = !filterRating;
-                  setFilterRating(next);
-                  setParam("rating8", next ? "true" : null);
-                }}
-              >
-                Rating: 8.0+
-              </FilterChip>
-              <FilterChip
-                active={filterNear}
-                onClick={() => {
-                  const next = !filterNear;
-                  setFilterNear(next);
-                  setParam("near", next ? "true" : null);
-                }}
-              >
-                Within 3 km
-              </FilterChip>
-              <FilterChip
-                active={filterMeals}
-                onClick={() => {
-                  const next = !filterMeals;
-                  setFilterMeals(next);
-                  setParam("meals", next ? "included" : null);
-                }}
-              >
-                Meals included
-              </FilterChip>
-              <FilterChip
-                active={filterPets}
-                onClick={() => {
-                  const next = !filterPets;
-                  setFilterPets(next);
-                  setParam("pets", next ? "true" : null);
-                }}
-              >
-                Pet-friendly
-              </FilterChip>
+              </SortChip>
             </div>
           </div>
 
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 transition-colors">
-            We found <span className="font-bold dark:text-white">{results.length}</span> hotel{results.length !== 1 ? 's' : ''} in <span className="font-bold dark:text-white">{initialValues.destination || 'your search'}</span>
+            We found <span className="font-bold dark:text-white">{searchResults.length}</span> hotel{searchResults.length !== 1 ? 's' : ''} in <span className="font-bold dark:text-white">{initialValues.destination || 'your search'}</span>
           </p>
 
           <div className="space-y-4">
-            {results.map((hotel) => (
-              <ResultCard 
-                key={hotel.id} 
-                item={hotel} 
-                onAddToCart={handleAddToCart}
-                nights={calculateNights(initialValues.start, initialValues.end)}
-                rooms={parseInt(initialValues.rooms || "1")}
-              />
-            ))}
+            {isLoading ? (
+                <div className="flex justify-center p-10"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div></div>
+            ) : (
+                searchResults.map((hotel) => (
+                  <ResultCard 
+                    key={hotel.id} 
+                    item={hotel} 
+                    onAddToCart={handleAddToCart}
+                    nights={calculateNights(initialValues.start, initialValues.end)}
+                    rooms={parseInt(initialValues.rooms || "1")}
+                  />
+                ))
+            )}
           </div>
         </>
       )}

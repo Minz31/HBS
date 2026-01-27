@@ -30,4 +30,9 @@ public class BookingResponseDTO {
     private String guestLastName;
     private String guestEmail;
     private String guestPhone;
+
+    // Payment details
+    private String paymentStatus;
+    private String paymentMethod;
+    private String transactionId;
 }

@@ -1,23 +1,19 @@
 package com.hotel.service;
 
 import java.util.List;
-import java.util.Objects;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hotel.custom_exceptions.ResourceNotFoundException;
-import com.hotel.dtos.ApiResponse;
 import com.hotel.dtos.HotelDTO;
-import com.hotel.dtos.RoomTypeDTO;
 import com.hotel.entities.Hotel;
 import com.hotel.entities.RoomType;
 import com.hotel.repository.HotelRepository;
-
 import com.hotel.repository.RoomTypeRepository;
+import com.hotel.repository.RoomRepository;
+import com.hotel.repository.BookingRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +26,11 @@ public class HotelServiceImpl implements HotelService {
 
     private final HotelRepository hotelRepository;
     private final RoomTypeRepository roomTypeRepository;
+    private final RoomRepository roomRepository;
+    private final BookingRepository bookingRepository;
+    private final com.hotel.repository.UserRepository userRepository;
     private final ModelMapper modelMapper;
-    private final ObjectMapper objectMapper;
+    // private final ObjectMapper objectMapper; // Unused
 
     @Override
     public List<Hotel> getAllHotels() {
@@ -49,7 +48,7 @@ public class HotelServiceImpl implements HotelService {
         if (id == null) {
             throw new IllegalArgumentException("Hotel ID cannot be null");
         }
-        
+
         try {
             log.debug("Getting hotel details for ID: {}", id);
             return hotelRepository.findById(id)
@@ -66,12 +65,11 @@ public class HotelServiceImpl implements HotelService {
     public List<Hotel> searchHotels(String city, String state, String destination) {
         try {
             log.info("Searching hotels with city: {}, state: {}, destination: {}", city, state, destination);
-            
+
             if (city != null && !city.trim().isEmpty()) {
                 return hotelRepository.findByCityContainingIgnoreCase(city);
             }
-            
-            // Since findByStateContainingIgnoreCase doesn't exist, search by city or return all
+
             return getAllHotels();
         } catch (Exception e) {
             log.error("Error searching hotels", e);
@@ -84,7 +82,7 @@ public class HotelServiceImpl implements HotelService {
         if (hotelId == null) {
             throw new IllegalArgumentException("Hotel ID cannot be null");
         }
-        
+
         try {
             log.debug("Getting rooms for hotel ID: {}", hotelId);
             return roomTypeRepository.findByHotelId(hotelId);
@@ -95,137 +93,159 @@ public class HotelServiceImpl implements HotelService {
     }
 
     @Override
-    public Hotel createHotel(HotelDTO hotelDTO) {
-        if (hotelDTO == null) {
-            throw new IllegalArgumentException("Hotel data cannot be null");
-        }
-        
+    public Boolean checkRoomAvailability(Long hotelId, Long roomTypeId, String checkIn, String checkOut,
+            Integer rooms) {
         try {
-            log.info("Creating new hotel: {}", hotelDTO.getName());
-            
+            java.time.LocalDate checkInDate = java.time.LocalDate.parse(checkIn);
+            java.time.LocalDate checkOutDate = java.time.LocalDate.parse(checkOut);
+
+            // Get total rooms of this type
+            Long totalRooms = roomRepository.countAvailableRooms(hotelId, roomTypeId);
+
+            // Get booked rooms in this date range
+            Long bookedRooms = bookingRepository.countBookingsInDateRange(hotelId, roomTypeId, checkInDate,
+                    checkOutDate);
+
+            // Check if requested rooms are available
+            Long availableRooms = totalRooms - bookedRooms;
+
+            log.info("Availability check - Total: {}, Booked: {}, Available: {}, Requested: {}",
+                    totalRooms, bookedRooms, availableRooms, rooms);
+
+            return availableRooms >= rooms;
+        } catch (Exception e) {
+            log.error("Error checking room availability", e);
+            throw new RuntimeException("Failed to check room availability", e);
+        }
+    }
+
+    @Override
+    public Hotel addNewHotel(HotelDTO hotelDTO, String ownerEmail) {
+        try {
+            log.info("Adding new hotel for owner: {}", ownerEmail);
+
+            // 1. Get Owner
+            com.hotel.entities.User owner = userRepository.findByEmail(ownerEmail)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + ownerEmail));
+
+            // 2. Map DTO to Entity
             Hotel hotel = modelMapper.map(hotelDTO, Hotel.class);
-            
-            processHotelJsonFields(hotel, hotelDTO.getAmenities(), hotelDTO.getImages());
-            
-            Hotel savedHotel = hotelRepository.save(Objects.requireNonNull(hotel));
-            log.info("Hotel created successfully with ID: {}", savedHotel.getId());
-            
+
+            // 3. Set Defaults & Relationships
+            hotel.setOwner(owner);
+            hotel.setStatus("PENDING"); // Default status for approval workflow
+            hotel.setRating(0.0);
+            hotel.setRatingCount(0);
+
+            // 4. Save
+            Hotel savedHotel = hotelRepository.save(hotel);
+            log.info("Hotel saved with ID: {}", savedHotel.getId());
+
             return savedHotel;
         } catch (Exception e) {
-            log.error("Error creating hotel", e);
-            throw new RuntimeException("Failed to create hotel", e);
+            log.error("Error adding hotel", e);
+            throw new RuntimeException("Failed to add hotel", e);
         }
     }
 
     @Override
-    public Hotel updateHotel(Long id, HotelDTO hotelDTO) {
-        if (id == null) {
-            throw new IllegalArgumentException("Hotel ID cannot be null");
-        }
-        if (hotelDTO == null) {
-            throw new IllegalArgumentException("Hotel data cannot be null");
-        }
-        
+    public List<Hotel> getHotelsByStatus(String status) {
         try {
-            log.info("Updating hotel with ID: {}", id);
-            
-            Hotel hotel = getHotelDetails(id);
-            
-            updateHotelFields(hotel, hotelDTO);
-            processHotelJsonFields(hotel, hotelDTO.getAmenities(), hotelDTO.getImages());
-            
-            return hotelRepository.save(Objects.requireNonNull(hotel));
-        } catch (ResourceNotFoundException e) {
-            throw e;
+            log.info("Getting hotels with status: {}", status);
+            return hotelRepository.findByStatus(status);
         } catch (Exception e) {
-            log.error("Error updating hotel with ID: {}", id, e);
-            throw new RuntimeException("Failed to update hotel", e);
+            log.error("Error getting hotels by status", e);
+            throw new RuntimeException("Failed to retrieve hotels by status", e);
         }
     }
 
     @Override
-    public ApiResponse deleteHotel(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("Hotel ID cannot be null");
-        }
-        
+    public Hotel updateHotelStatus(Long hotelId, String status) {
         try {
-            log.info("Deleting hotel with ID: {}", id);
-            
-            if (!hotelRepository.existsById(Objects.requireNonNull(id))) {
-                throw new ResourceNotFoundException("Hotel not found with ID: " + id);
-            }
-            
-            hotelRepository.deleteById(Objects.requireNonNull(id));
-            return new ApiResponse("Success", "Hotel deleted successfully");
-        } catch (ResourceNotFoundException e) {
-            throw e;
+            log.info("Updating hotel ID: {} status to: {}", hotelId, status);
+
+            Hotel hotel = hotelRepository.findById(hotelId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID: " + hotelId));
+
+            hotel.setStatus(status);
+            return hotelRepository.save(hotel);
         } catch (Exception e) {
-            log.error("Error deleting hotel with ID: {}", id, e);
-            throw new RuntimeException("Failed to delete hotel", e);
+            log.error("Error updating hotel status", e);
+            throw new RuntimeException("Failed to update hotel status", e);
         }
     }
 
     @Override
-    public RoomType addRoomType(Long hotelId, RoomTypeDTO roomTypeDTO) {
-        if (hotelId == null) {
-            throw new IllegalArgumentException("Hotel ID cannot be null");
-        }
-        if (roomTypeDTO == null) {
-            throw new IllegalArgumentException("Room type data cannot be null");
-        }
-        
+    public List<com.hotel.dtos.DestinationDTO> getPopularDestinations(String type) {
         try {
-            log.info("Adding room type to hotel ID: {}", hotelId);
-            
-            Hotel hotel = getHotelDetails(hotelId);
-            RoomType roomType = modelMapper.map(roomTypeDTO, RoomType.class);
-            roomType.setHotel(hotel);
-            
-            processRoomTypeJsonFields(roomType, roomTypeDTO.getAmenities(), roomTypeDTO.getImages());
-            
-            return roomTypeRepository.save(roomType);
-        } catch (ResourceNotFoundException e) {
-            throw e;
+            List<Hotel> allHotels = hotelRepository.findByStatus("APPROVED");
+
+            // Group by City or State
+            java.util.Map<String, List<Hotel>> grouped;
+            if ("state".equalsIgnoreCase(type)) {
+                grouped = allHotels.stream()
+                        .filter(h -> h.getState() != null)
+                        .collect(java.util.stream.Collectors.groupingBy(h -> h.getState().trim()));
+            } else {
+                // Default to City
+                grouped = allHotels.stream()
+                        .filter(h -> h.getCity() != null)
+                        .collect(java.util.stream.Collectors.groupingBy(h -> h.getCity().trim()));
+            }
+
+            return grouped.entrySet().stream().map(entry -> {
+                String name = entry.getKey();
+                List<Hotel> hotels = entry.getValue();
+
+                // Calculate Stats
+                Long count = (long) hotels.size();
+                Double avgRating = hotels.stream().mapToDouble(Hotel::getRating).average().orElse(0.0);
+                // Simplify image picking: take first hotel's first image or default
+                String image = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=60"; // fallback
+
+                for (Hotel h : hotels) {
+                    if (h.getImages() != null && h.getImages().length() > 5) { // minimal valid json length
+                        try {
+                            String raw = h.getImages();
+                            if (raw.contains("http")) {
+                                // extremely naive parser: extract first http link
+                                int start = raw.indexOf("http");
+                                int end = raw.indexOf("\"", start);
+                                if (end == -1)
+                                    end = raw.indexOf("'", start);
+                                if (end > start) {
+                                    image = raw.substring(start, end);
+                                    break; // found one
+                                }
+                            }
+                        } catch (Exception e) {
+                            // ignore parse error, use default
+                        }
+                    }
+                }
+
+                Double dummyPrice = avgRating > 0 ? avgRating * 1500 : 3500.0;
+
+                // Extract cities if type is state
+                java.util.List<String> cityList = null;
+                if ("state".equalsIgnoreCase(type)) {
+                    cityList = hotels.stream()
+                            .map(Hotel::getCity)
+                            .filter(java.util.Objects::nonNull)
+                            .distinct()
+                            .limit(5)
+                            .collect(java.util.stream.Collectors.toList());
+                }
+
+                return new com.hotel.dtos.DestinationDTO(name, count.intValue(), dummyPrice, image, cityList);
+            })
+                    .sorted((a, b) -> b.getHotels().compareTo(a.getHotels())) // Sort by count desc
+                    .limit(10)
+                    .collect(java.util.stream.Collectors.toList());
+
         } catch (Exception e) {
-            log.error("Error adding room type to hotel ID: {}", hotelId, e);
-            throw new RuntimeException("Failed to add room type", e);
-        }
-    }
-    
-    private void updateHotelFields(Hotel hotel, HotelDTO hotelDTO) {
-        hotel.setName(hotelDTO.getName());
-        hotel.setCity(hotelDTO.getCity());
-        hotel.setState(hotelDTO.getState());
-        hotel.setAddress(hotelDTO.getAddress());
-        hotel.setDescription(hotelDTO.getDescription());
-    }
-    
-    private void processHotelJsonFields(Hotel hotel, Object amenities, Object images) {
-        try {
-            if (amenities != null) {
-                hotel.setAmenities(objectMapper.writeValueAsString(amenities));
-            }
-            if (images != null) {
-                hotel.setImages(objectMapper.writeValueAsString(images));
-            }
-        } catch (JsonProcessingException e) {
-            log.error("Error processing JSON for hotel", e);
-            throw new RuntimeException("Error processing hotel data", e);
-        }
-    }
-    
-    private void processRoomTypeJsonFields(RoomType roomType, Object amenities, Object images) {
-        try {
-            if (amenities != null) {
-                roomType.setAmenities(objectMapper.writeValueAsString(amenities));
-            }
-            if (images != null) {
-                roomType.setImages(objectMapper.writeValueAsString(images));
-            }
-        } catch (JsonProcessingException e) {
-            log.error("Error processing JSON for room type", e);
-            throw new RuntimeException("Error processing room type data", e);
+            log.error("Error fetching popular destinations", e);
+            return new java.util.ArrayList<>();
         }
     }
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   FaHotel,
   FaArrowRight,
@@ -11,19 +11,17 @@ import {
   FaStar,
   FaCheck,
   FaBuilding,
-  FaMapMarkerAlt,
-  FaPhone,
-  FaEnvelope,
   FaUser,
-  FaBed,
-  FaImage,
   FaTimes,
   FaCheckCircle,
 } from 'react-icons/fa';
+import { ownerAPI } from '../services/completeAPI';
 
 const Hoteliers = () => {
+  const navigate = useNavigate();
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [registrationStep, setRegistrationStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     // Owner Details
     ownerName: '',
@@ -101,26 +99,60 @@ const Hoteliers = () => {
     }));
   };
 
-  const handleSubmit = () => {
-    // Simulate form submission
-    alert('Registration submitted successfully! Our team will contact you within 24 hours.');
-    setShowRegistrationForm(false);
-    setRegistrationStep(1);
-    setFormData({
-      ownerName: '',
-      ownerEmail: '',
-      ownerPhone: '',
-      hotelName: '',
-      hotelType: 'Hotel',
-      starRating: '3',
-      totalRooms: '',
-      address: '',
-      city: '',
-      state: '',
-      country: '',
-      pincode: '',
-      amenities: [],
-    });
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      // Check if user is logged in
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login as Hotel Manager to register your property');
+        navigate('/login');
+        return;
+      }
+
+      // Prepare hotel data for API
+      const hotelData = {
+        name: formData.hotelName,
+        city: formData.city,
+        state: formData.state,
+        address: formData.address,
+        description: `${formData.hotelType} with ${formData.totalRooms} rooms`,
+        starRating: parseInt(formData.starRating),
+        priceRange: `₹5,000 - ₹15,000`, // Default range
+        amenities: formData.amenities,
+        images: [] // Empty for now
+      };
+
+      // Call API to create hotel
+      await ownerAPI.createHotel(hotelData);
+      
+      alert('Hotel registered successfully! Status: PENDING. Admin will review and approve your property.');
+      setShowRegistrationForm(false);
+      setRegistrationStep(1);
+      setFormData({
+        ownerName: '',
+        ownerEmail: '',
+        ownerPhone: '',
+        hotelName: '',
+        hotelType: 'Hotel',
+        starRating: '3',
+        totalRooms: '',
+        address: '',
+        city: '',
+        state: '',
+        country: '',
+        pincode: '',
+        amenities: [],
+      });
+      
+      // Redirect to owner dashboard
+      navigate('/owner/dashboard');
+    } catch (error) {
+      console.error('Hotel registration error:', error);
+      alert(error.message || 'Failed to register hotel. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -549,10 +581,11 @@ const Hoteliers = () => {
                 ) : (
                   <button
                     onClick={handleSubmit}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-bold rounded-xl hover:from-amber-600 hover:to-yellow-600 shadow-lg transform hover:scale-105 transition-all flex items-center justify-center gap-2"
+                    disabled={loading}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-bold rounded-xl hover:from-amber-600 hover:to-yellow-600 shadow-lg transform hover:scale-105 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FaCheckCircle className="h-5 w-5" />
-                    Submit Registration
+                    {loading ? 'Submitting...' : 'Submit Registration'}
                   </button>
                 )}
               </div>

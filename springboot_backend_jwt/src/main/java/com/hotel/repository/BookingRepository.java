@@ -15,6 +15,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByHotelId(Long hotelId);
 
     List<Booking> findByUser(com.hotel.entities.User user);
+
+    List<Booking> findByPaymentStatus(String paymentStatus);
     
     // Check room availability for a specific date range
     @Query("SELECT COUNT(b) FROM Booking b WHERE b.hotel.id = :hotelId " +

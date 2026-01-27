@@ -38,4 +38,9 @@ public class BookingDTO {
     private String guestLastName;
     private String guestEmail;
     private String guestPhone;
+
+    // Payment details
+    private String paymentMethod; // CREDIT_CARD, UPI, NET_BANKING
+    private String paymentStatus;
+    private String transactionId;
 }

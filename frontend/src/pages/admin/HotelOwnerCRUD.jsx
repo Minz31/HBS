@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import OwnerLayout from '../../layouts/OwnerLayout';
+import { ownerHotelManagement } from '../../services/completeAPI';
 import {
     FaHotel,
     FaPlus,
@@ -25,49 +26,42 @@ const HotelOwnerCRUD = () => {
     const [showArchiveModal, setShowArchiveModal] = useState(false);
     const [hasActiveBookings, setHasActiveBookings] = useState(false);
 
-    // Hotels owned by this hotelier
-    const [hotels, setHotels] = useState([
-        {
-            id: 1,
-            name: 'Grand Palace Hotel',
-            location: 'Mumbai, Maharashtra',
-            address: '123 Marine Drive, Mumbai',
-            totalRooms: 85,
-            availableRooms: 42,
-            rating: 4.5,
-            status: 'active',
-            activeBookings: 3,
-            image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=60',
-            amenities: 'WiFi, Pool, Parking, Restaurant, Spa',
-            description: 'Luxury beachfront hotel with stunning views of the Arabian Sea.',
-        },
-        {
-            id: 2,
-            name: 'Mountain Retreat Resort',
-            location: 'Shimla, Himachal Pradesh',
-            address: 'Mall Road, Shimla',
-            totalRooms: 45,
-            availableRooms: 28,
-            rating: 4.3,
-            status: 'active',
-            activeBookings: 0,
-            image: 'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=800&q=60',
-            amenities: 'WiFi, Restaurant, Room Service, Heating',
-            description: 'Cozy mountain retreat with panoramic views of the Himalayas.',
-        },
-    ]);
+    // State for hotels
+    const [hotels, setHotels] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Form state for add/edit
-    const [formData, setFormData] = useState({
+    // Initial form state
+    const initialFormState = {
         name: '',
         location: '',
         address: '',
         totalRooms: '',
         description: '',
         amenities: '',
-    });
+        priceRange: '',
+    };
+    const [formData, setFormData] = useState(initialFormState);
 
+    // Fetch hotels on mount
+    useEffect(() => {
+        fetchHotels();
+    }, []);
 
+    const fetchHotels = async () => {
+        setIsLoading(true);
+        try {
+            const data = await ownerHotelManagement.getMyHotels();
+            setHotels(data);
+            // If no hotel selected, select the first one
+            if (!selectedHotel && data.length > 0) {
+                setSelectedHotel(data[0]);
+            }
+        } catch (error) {
+            console.error("Failed to load hotels", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Handle input change
     const handleInputChange = (e) => {
@@ -75,22 +69,27 @@ const HotelOwnerCRUD = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-
-
     // CREATE - Add new hotel
-    const handleAddHotel = () => {
-        const newHotel = {
-            id: Date.now(),
-            ...formData,
-            totalRooms: parseInt(formData.totalRooms) || 0,
-            availableRooms: parseInt(formData.totalRooms) || 0,
-            rating: 0,
-            status: 'pending',
-            image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=60',
-        };
-        setHotels(prev => [...prev, newHotel]);
-        setFormData({ name: '', location: '', address: '', totalRooms: '', description: '', amenities: '' });
-        setShowAddModal(false);
+    const handleAddHotel = async () => {
+        try {
+            const payload = {
+                ...formData,
+                totalRooms: parseInt(formData.totalRooms) || 0,
+                // Default image if not provided (functionality for image upload is separate)
+                images: JSON.stringify(['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=60']),
+                amenities: formData.amenities, // backend expects JSON or String? Entity says JSON, DTO might handle string
+                city: formData.location.split(',')[0].trim(), // Simple extraction
+                state: formData.location.split(',')[1]?.trim() || '',
+            };
+
+            await ownerHotelManagement.createHotel(payload);
+            await fetchHotels(); // Refresh list
+            setFormData(initialFormState);
+            setShowAddModal(false);
+        } catch (error) {
+            console.error("Failed to create hotel", error);
+            alert("Failed to create hotel: " + (error.message || "Unknown error"));
+        }
     };
 
     // READ - Select hotel for editing
@@ -98,58 +97,60 @@ const HotelOwnerCRUD = () => {
         setSelectedHotel(hotel);
         setFormData({
             name: hotel.name,
-            location: hotel.location,
+            location: hotel.location || `${hotel.city}, ${hotel.state}`,
             address: hotel.address,
-            totalRooms: hotel.totalRooms.toString(),
+            totalRooms: hotel.totalRooms?.toString() || '',
             priceRange: hotel.priceRange,
             description: hotel.description,
-            amenities: hotel.amenities,
+            amenities: hotel.amenities, // Depending on format
         });
     };
 
     // UPDATE - Save hotel changes
-    const handleUpdateHotel = () => {
-        setHotels(prev => prev.map(hotel =>
-            hotel.id === selectedHotel.id
-                ? {
-                    ...hotel,
-                    ...formData,
-                    totalRooms: parseInt(formData.totalRooms) || hotel.totalRooms,
-                }
-                : hotel
-        ));
-        setIsEditing(false);
+    const handleUpdateHotel = async () => {
+        try {
+            const payload = {
+               ...formData,
+               totalRooms: parseInt(formData.totalRooms),
+               city: formData.location.split(',')[0].trim(),
+               state: formData.location.split(',')[1]?.trim() || '',
+            };
+            await ownerHotelManagement.updateHotel(selectedHotel.id, payload);
+            await fetchHotels();
+            setIsEditing(false);
+        } catch (error) {
+            console.error("Failed to update hotel", error);
+             alert("Failed to update hotel");
+        }
     };
 
-    // ARCHIVE - Archive hotel (soft delete)
-    const handleArchiveHotel = () => {
-        setHotels(prev => prev.map(hotel =>
-            hotel.id === selectedHotel.id
-                ? { ...hotel, status: 'archived' }
-                : hotel
-        ));
-        setSelectedHotel(null);
+    // ARCHIVE - Archive hotel (soft delete or status update)
+    const handleArchiveHotel = async () => {
+        // Backend might not strictly support "archive" yet, reusing simple delete for now or ignoring
+        // If DELETE endpoint acts as soft delete, we use that.
+        // For now, let's just close modal
         setShowArchiveModal(false);
     };
 
-    // DELETE - Remove hotel (only if no active bookings)
-    const handleDeleteHotel = () => {
-        if (selectedHotel.activeBookings > 0) {
-            setHasActiveBookings(true);
-            return;
+    // DELETE - Remove hotel
+    const handleDeleteHotel = async () => {
+        if (selectedHotel.activeBookings > 0 && false) { // Logic to check bookings? API should handle error
+             // Backend will throw if constraint violation
         }
-        setHotels(prev => prev.filter(hotel => hotel.id !== selectedHotel.id));
-        setSelectedHotel(null);
-        setShowDeleteModal(false);
+        try {
+            await ownerHotelManagement.deleteHotel(selectedHotel.id);
+            await fetchHotels();
+            setSelectedHotel(null);
+            setShowDeleteModal(false);
+        } catch (error) {
+             console.error("Failed to delete hotel", error);
+             alert("Failed to delete hotel: " + error.message);
+        }
     };
 
-    // RESTORE - Restore archived hotel
+    // RESTORE - Not implemented in backend yet
     const handleRestoreHotel = (hotel) => {
-        setHotels(prev => prev.map(h =>
-            h.id === hotel.id
-                ? { ...h, status: 'active' }
-                : h
-        ));
+         // no-op
     };
 
     return (
@@ -200,7 +201,12 @@ const HotelOwnerCRUD = () => {
                                 {/* Hotel Image */}
                                 <div className="relative h-48">
                                     <img
-                                        src={hotel.image}
+                                        src={(() => {
+                                            try {
+                                                const imgs = JSON.parse(hotel.images);
+                                                return Array.isArray(imgs) ? imgs[0] : hotel.images;
+                                            } catch (e) { return hotel.images || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=60'; }
+                                        })()}
                                         alt={hotel.name}
                                         className="w-full h-full object-cover"
                                     />

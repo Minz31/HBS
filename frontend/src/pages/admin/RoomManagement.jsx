@@ -6,58 +6,56 @@ import {
     FaSearch,
     FaFilter,
     FaTimes,
-    FaUserFriends,
-    FaDollarSign,
     FaBed,
     FaCheck,
 } from 'react-icons/fa';
 import OwnerLayout from '../../layouts/OwnerLayout';
 
 const RoomManagement = () => {
-    const [rooms, setRooms] = useState([
-        { id: 1, number: '101', type: 'Deluxe', capacity: 2, status: 'Available', floor: 1, beds: '1 King Bed', size: '450 sq ft' },
-        { id: 2, number: '102', type: 'Standard', capacity: 2, status: 'Occupied', floor: 1, beds: '2 Single Beds', size: '300 sq ft' },
-        { id: 3, number: '201', type: 'Standard AC', capacity: 2, status: 'Available', floor: 2, beds: '2 Single Beds', size: '350 sq ft' },
-        { id: 4, number: '202', type: 'Family', capacity: 4, status: 'Available', floor: 2, beds: '4 Beds', size: '600 sq ft' },
-        { id: 5, number: '301', type: 'Standard AC', capacity: 2, status: 'Available', floor: 3, beds: '2 Single Beds', size: '400 sq ft' },
-        { id: 6, number: '302', type: 'Standard', capacity: 2, status: 'Available', floor: 3, beds: '2 Single Beds', size: '300 sq ft' },
-    ]);
-
+    const [rooms] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('All');
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingRoom, setEditingRoom] = useState(null);
     const [formData, setFormData] = useState({
         number: '',
-        type: 'Standard',
-        capacity: 2,
-        status: 'Available',
         floor: 1,
+        type: 'Standard AC',
+        status: 'Available',
+        capacity: 2,
         beds: '2 Single Beds',
-        size: '',
+        size: '350 sq ft'
     });
 
-    const roomTypes = ['Standard', 'Standard AC', 'Deluxe', 'Family'];
+    const stats = [
+        { label: 'Total Rooms', value: rooms.length, color: 'from-blue-500 to-blue-600' },
+        { label: 'Available', value: rooms.filter(r => r.status === 'Available').length, color: 'from-green-500 to-green-600' },
+        { label: 'Occupied', value: rooms.filter(r => r.status === 'Occupied').length, color: 'from-yellow-500 to-yellow-600' },
+        { label: 'Maintenance', value: rooms.filter(r => r.status === 'Maintenance').length, color: 'from-red-500 to-red-600' }
+    ];
+
     const statusOptions = ['Available', 'Occupied', 'Maintenance', 'Reserved'];
+    const roomTypes = ['Standard AC', 'Deluxe', 'Family', 'Standard'];
 
     const filteredRooms = rooms.filter(room => {
-        const matchesSearch = room.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            room.type.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = room.number.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            room.type.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesFilter = filterStatus === 'All' || room.status === filterStatus;
         return matchesSearch && matchesFilter;
     });
 
-    const handleInputChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    const getStatusColor = (status) => {
+        const colors = {
+            'Available': 'bg-green-500/90 text-white border-green-400',
+            'Occupied': 'bg-yellow-500/90 text-white border-yellow-400',
+            'Maintenance': 'bg-red-500/90 text-white border-red-400',
+            'Reserved': 'bg-blue-500/90 text-white border-blue-400'
+        };
+        return colors[status] || 'bg-gray-500/90 text-white border-gray-400';
     };
 
-    const handleAddRoom = () => {
-        if (editingRoom) {
-            setRooms(rooms.map(room => room.id === editingRoom.id ? { ...formData, id: room.id } : room));
-        } else {
-            setRooms([...rooms, { ...formData, id: Date.now() }]);
-        }
-        resetForm();
+    const handleInputChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleEditRoom = (room) => {
@@ -67,41 +65,30 @@ const RoomManagement = () => {
     };
 
     const handleDeleteRoom = (id) => {
-        if (confirm('Are you sure you want to delete this room?')) {
-            setRooms(rooms.filter(room => room.id !== id));
+        if (window.confirm('Delete this room?')) {
+            console.log('Delete room:', id);
         }
+    };
+
+    const handleAddRoom = () => {
+        console.log('Add/Update room:', formData);
+        resetForm();
     };
 
     const resetForm = () => {
+        setShowAddModal(false);
+        setEditingRoom(null);
         setFormData({
             number: '',
-            type: 'Standard',
-            capacity: 2,
-            status: 'Available',
             floor: 1,
+            type: 'Standard AC',
+            status: 'Available',
+            capacity: 2,
             beds: '2 Single Beds',
-            size: '',
+            size: '350 sq ft'
         });
-        setEditingRoom(null);
-        setShowAddModal(false);
     };
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Available': return 'bg-emerald-100 text-emerald-700 border-emerald-300';
-            case 'Occupied': return 'bg-red-100 text-red-700 border-red-300';
-            case 'Maintenance': return 'bg-amber-100 text-amber-700 border-amber-300';
-            case 'Reserved': return 'bg-blue-100 text-blue-700 border-blue-300';
-            default: return 'bg-gray-100 text-gray-700 border-gray-300';
-        }
-    };
-
-    const stats = [
-        { label: 'Total Rooms', value: rooms.length, color: 'from-blue-500 to-indigo-600' },
-        { label: 'Available', value: rooms.filter(r => r.status === 'Available').length, color: 'from-emerald-500 to-teal-600' },
-        { label: 'Occupied', value: rooms.filter(r => r.status === 'Occupied').length, color: 'from-red-500 to-pink-600' },
-        { label: 'Maintenance', value: rooms.filter(r => r.status === 'Maintenance').length, color: 'from-amber-500 to-orange-600' },
-    ];
 
 
     return (
@@ -192,7 +179,7 @@ const RoomManagement = () => {
 
                                     <div className="space-y-2 mb-4">
                                         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                            <FaUserFriends className="h-5 w-5 text-blue-500" />
+                                            <FaBed className="h-5 w-5 text-blue-500" />
                                             <span>{room.capacity} Guests</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">

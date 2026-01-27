@@ -17,9 +17,15 @@ public class UserDTO {
     private Long id;
     private String firstName;
     private String lastName;
+    private String email;
+    private String phone;
+    private String address;
     private LocalDate dob;
     private UserRole userRole;
     private int regAmount;
+    private String accountStatus;
+    private String suspensionReason;
+    private LocalDate createdAt;
 
     public UserDTO(String firstName, String lastName, LocalDate dob) {
         super();

@@ -1,12 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     FaMoneyBillWave,
-    FaArrowUp,
-    FaArrowDown,
     FaFileDownload,
     FaSearch,
     FaFilter,
-    FaCheckCircle,
     FaClock,
     FaTimesCircle,
     FaUniversity,
@@ -14,17 +11,45 @@ import {
     FaMobileAlt
 } from 'react-icons/fa';
 import OwnerLayout from '../../layouts/OwnerLayout';
-import { mockPayments } from '../../data/experienceData';
+import { adminAPI } from '../../services/completeAPI';
 
 const PaymentsManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [payments, setPayments] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const stats = [
-        { label: 'Total Revenue', value: '₹4,52,300', icon: FaMoneyBillWave, color: 'from-blue-600 to-indigo-600' },
-        { label: 'Pending Payments', value: '₹18,400', icon: FaClock, color: 'from-amber-500 to-orange-600' },
-        { label: 'Payouts Processed', value: '₹3,20,000', icon: FaUniversity, color: 'from-emerald-500 to-teal-600' },
-        { label: 'Failed Trans.', value: '1', icon: FaTimesCircle, color: 'from-red-500 to-pink-600' },
-    ];
+    useEffect(() => {
+        loadPayments();
+    }, []);
+
+    const loadPayments = async () => {
+        setLoading(true);
+        try {
+            const data = await adminAPI.getAllPayments();
+            setPayments(data);
+        } catch (error) {
+            console.error('Error loading payments:', error);
+            setPayments([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const calculateStats = () => {
+        const totalRevenue = payments.reduce((sum, p) => sum + (parseFloat(p.totalPrice) || 0), 0);
+        const pendingAmount = payments.filter(p => p.paymentStatus === 'PENDING').reduce((sum, p) => sum + (parseFloat(p.totalPrice) || 0), 0);
+        const completedAmount = payments.filter(p => p.paymentStatus === 'COMPLETED').reduce((sum, p) => sum + (parseFloat(p.totalPrice) || 0), 0);
+        const failedCount = payments.filter(p => p.paymentStatus === 'FAILED').length;
+
+        return [
+            { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: FaMoneyBillWave, color: 'from-blue-600 to-indigo-600' },
+            { label: 'Pending Payments', value: `₹${pendingAmount.toLocaleString()}`, icon: FaClock, color: 'from-amber-500 to-orange-600' },
+            { label: 'Completed', value: `₹${completedAmount.toLocaleString()}`, icon: FaUniversity, color: 'from-emerald-500 to-teal-600' },
+            { label: 'Failed Trans.', value: failedCount.toString(), icon: FaTimesCircle, color: 'from-red-500 to-pink-600' },
+        ];
+    };
+
+    const stats = calculateStats();
 
     const getStatusStyle = (status) => {
         switch (status.toLowerCase()) {
@@ -104,6 +129,16 @@ const PaymentsManagement = () => {
                         </div>
 
                         <div className="overflow-x-auto">
+                            {loading ? (
+                                <div className="text-center py-16">
+                                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                                    <p className="mt-4 text-gray-600 dark:text-gray-400">Loading payments...</p>
+                                </div>
+                            ) : payments.length === 0 ? (
+                                <div className="text-center py-16">
+                                    <p className="text-gray-600 dark:text-gray-400">No payments found</p>
+                                </div>
+                            ) : (
                             <table className="w-full">
                                 <thead>
                                     <tr className="bg-gray-50/50 dark:bg-gray-900/50">
@@ -117,34 +152,34 @@ const PaymentsManagement = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
-                                    {mockPayments.map((payment) => (
+                                    {payments.map((payment) => (
                                         <tr key={payment.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors group">
                                             <td className="px-8 py-6 whitespace-nowrap">
-                                                <span className="text-sm font-bold text-blue-600 dark:text-blue-400">#{payment.id}</span>
+                                                <span className="text-sm font-bold text-blue-600 dark:text-blue-400">#{payment.transactionId || payment.id}</span>
                                             </td>
                                             <td className="px-8 py-6 whitespace-nowrap">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xs">
-                                                        {payment.guestName.charAt(0)}
+                                                        {(payment.user?.firstName || 'G').charAt(0)}
                                                     </div>
-                                                    <span className="text-sm font-bold text-gray-900 dark:text-white">{payment.guestName}</span>
+                                                    <span className="text-sm font-bold text-gray-900 dark:text-white">{payment.user?.firstName} {payment.user?.lastName}</span>
                                                 </div>
                                             </td>
                                             <td className="px-8 py-6 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                                                {payment.date}
+                                                {new Date(payment.checkInDate).toLocaleDateString()}
                                             </td>
                                             <td className="px-8 py-6 whitespace-nowrap">
-                                                <span className="text-sm font-black text-gray-900 dark:text-white">₹{payment.amount.toLocaleString()}</span>
+                                                <span className="text-sm font-black text-gray-900 dark:text-white">₹{parseFloat(payment.totalPrice || 0).toLocaleString()}</span>
                                             </td>
                                             <td className="px-8 py-6 whitespace-nowrap">
                                                 <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                                                    {getMethodIcon(payment.method)}
-                                                    {payment.method}
+                                                    {getMethodIcon(payment.paymentMethod || 'credit card')}
+                                                    {payment.paymentMethod || 'N/A'}
                                                 </div>
                                             </td>
                                             <td className="px-8 py-6 whitespace-nowrap">
-                                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border-2 ${getStatusStyle(payment.status)}`}>
-                                                    {payment.status}
+                                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border-2 ${getStatusStyle(payment.paymentStatus || 'pending')}`}>
+                                                    {payment.paymentStatus || 'PENDING'}
                                                 </span>
                                             </td>
                                             <td className="px-8 py-6 whitespace-nowrap">
@@ -156,6 +191,7 @@ const PaymentsManagement = () => {
                                     ))}
                                 </tbody>
                             </table>
+                            )}
                         </div>
                     </div>
                 </div>

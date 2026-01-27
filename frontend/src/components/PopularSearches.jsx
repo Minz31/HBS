@@ -1,83 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
-
-const cities = [
-  {
-    name: "Jaipur",
-    hotels: 4810,
-    avg: 4742,
-    image:
-      "https://images.unsplash.com/photo-1548013146-72479768bada?w=800&q=60",
-  },
-  {
-    name: "Mumbai",
-    hotels: 5130,
-    avg: 6935,
-    image:
-      "https://images.unsplash.com/photo-1548013146-7a3a6b39b0f6?w=800&q=60",
-  },
-  {
-    name: "Udaipur",
-    hotels: 2506,
-    avg: 5761,
-    image:
-      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=60",
-  },
-  {
-    name: "Goa",
-    hotels: 3200,
-    avg: 8500,
-    image:
-      "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&q=60",
-  },
-  {
-    name: "Delhi",
-    hotels: 6200,
-    avg: 5500,
-    image:
-      "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=800&q=60",
-  },
-];
-
-const destinations = [
-  {
-    state: "Rajasthan",
-    image: "https://images.unsplash.com/photo-1548013146-72479768bada?w=800&q=60",
-    cities: ["Jaipur", "Udaipur", "Jodhpur"],
-    totalHotels: 7500,
-  },
-  {
-    state: "Maharashtra",
-    image: "https://images.unsplash.com/photo-1567157577867-05ccb1388e66?w=800&q=60",
-    cities: ["Mumbai", "Pune", "Lonavala"],
-    totalHotels: 9200,
-  },
-  {
-    state: "Goa",
-    image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&q=60",
-    cities: ["Panaji", "Calangute", "Candolim"],
-    totalHotels: 5500,
-  },
-  {
-    state: "Kerala",
-    image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=800&q=60",
-    cities: ["Kochi", "Munnar", "Alleppey"],
-    totalHotels: 6800,
-  },
-  {
-    state: "Karnataka",
-    image: "https://images.unsplash.com/photo-1600100397608-6a6d32b585f9?w=800&q=60",
-    cities: ["Bangalore", "Mysore", "Coorg"],
-    totalHotels: 7200,
-  },
-  {
-    state: "Tamil Nadu",
-    image: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=800&q=60",
-    cities: ["Chennai", "Ooty", "Pondicherry"],
-    totalHotels: 6500,
-  },
-];
+import { publicAPI } from '../services/completeAPI';
 
 const currency = (v) =>
   new Intl.NumberFormat("en-IN", {
@@ -156,8 +80,32 @@ const DestinationCard = ({ item, navigate }) => {
 
 const PopularSearches = () => {
   const [tab, setTab] = useState("Cities");
+  const [cities, setCities] = useState([]);
+  const [destinations, setDestinations] = useState([]);
+  const [loading, setLoading] = useState(false);
   const scrollerRef = useRef(null);
   const navigate = useNavigate();
+
+  // Fetch data on mount
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+        const [citiesData, statesData] = await Promise.all([
+            publicAPI.getDestinations('city'),
+            publicAPI.getDestinations('state')
+        ]);
+        setCities(citiesData || []);
+        setDestinations(statesData || []);
+    } catch (error) {
+        console.error("Failed to fetch destinations", error);
+    } finally {
+        setLoading(false);
+    }
+  };
 
   const scrollRight = () => {
     if (scrollerRef.current) scrollerRef.current.scrollBy({ left: 300, behavior: "smooth" });
@@ -194,28 +142,43 @@ const PopularSearches = () => {
           className="flex gap-4 overflow-x-auto pb-2 pr-10"
           style={{ scrollbarWidth: "none" }}
         >
-          {tab === "Cities" &&
-            cities.map((c) => (
-              <CityCard
-                key={c.name}
-                item={c}
-                onClick={() =>
-                  navigate(
-                    `/search?destination=${encodeURIComponent(c.name)}&adults=2&rooms=1`
-                  )
-                }
-              />
-            ))}
-          {tab === "Destinations" &&
-            destinations.map((d) => (
-              <DestinationCard key={d.state} item={d} navigate={navigate} />
-            ))}
+          {loading ? (
+             <div className="flex gap-4">
+               {[1,2,3,4].map(i => (
+                 <div key={i} className="min-w-[260px] h-60 bg-gray-100 dark:bg-gray-800 animate-pulse rounded-2xl"></div>
+               ))}
+             </div>
+          ) : (
+            <>
+              {tab === "Cities" &&
+                cities.map((c) => (
+                  <CityCard
+                    key={c.name}
+                    item={c}
+                    onClick={() =>
+                      navigate(
+                        `/search?destination=${encodeURIComponent(c.name)}&adults=2&rooms=1`
+                      )
+                    }
+                  />
+                ))}
+              {tab === "Destinations" &&
+                destinations.map((d) => (
+                  <DestinationCard key={d.name} item={{
+                      state: d.name,
+                      image: d.image,
+                      totalHotels: d.hotels,
+                      cities: d.cities || []
+                  }} navigate={navigate} />
+                ))}
+            </>
+          )}
         </div>
         <button
           onClick={scrollRight}
-          className="absolute right-0 top-1/2 -translate-y-1/2 bg-white border rounded-full p-2 shadow"
+          className="absolute right-0 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-full p-2 shadow z-10"
         >
-          <ChevronRightIcon className="h-5 w-5" />
+          <ChevronRightIcon className="h-5 w-5 dark:text-white" />
         </button>
       </div>
     </div>

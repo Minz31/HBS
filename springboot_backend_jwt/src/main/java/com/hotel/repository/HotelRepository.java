@@ -8,7 +8,6 @@ import com.hotel.entities.Hotel;
 
 public interface HotelRepository extends JpaRepository<Hotel, Long> {
     List<Hotel> findByCityContainingIgnoreCase(String city);
-
-    // Example: Find top rated hotels
-    List<Hotel> findTop5ByOrderByRatingDesc();
+    List<Hotel> findByStatus(String status);
+    List<Hotel> findByOwnerId(Long ownerId);
 }

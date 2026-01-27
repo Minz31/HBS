@@ -34,6 +34,9 @@ public class RoomType extends BaseEntity {
     @Column(nullable = false)
     private Integer capacity;
 
+    @Column(name = "total_rooms", nullable = false)
+    private Integer totalRooms = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id", nullable = false)
     @ToString.Exclude

@@ -11,57 +11,44 @@ import {
   XMarkIcon,
   CheckIcon
 } from "@heroicons/react/24/outline";
-import { mockHotels } from "../data/mockData";
-import { calculateNights, currency, getCappedPrice } from "../utils/bookingUtils";
+import { calculateNights, currency } from "../utils/bookingUtils";
+import customerAPI from "../services/customerAPI";
+import { useAuth } from "../context/AuthContext";
 
 const Cart = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [cartItems, setCartItems] = useState(() => {
     return JSON.parse(localStorage.getItem("hotelCart") || "[]");
   });
   const [editingIndex, setEditingIndex] = useState(null);
   const [editForm, setEditForm] = useState({});
 
-  // Helper to get base price safely with capping rule
-  const getBasePrice = (item) => {
-    const hotel = mockHotels.find(h => h.name === item.hotel);
-    const mockRef = hotel ? hotel.price : 0;
-    
-    let currentBase = item.basePrice;
-    if (!currentBase || currentBase > 10000000) {
-      currentBase = mockRef || (item.price / (item.rooms || 1) / (item.nights || 1));
+  // Proceed to checkout - Create actual booking
+  const handleCheckout = async () => {
+    if (cartItems.length === 0 || !isAuthenticated) {
+      alert('Please login to proceed with booking.');
+      navigate('/login');
+      return;
     }
     
-    return getCappedPrice(item.hotel, currentBase);
+    try {
+      await customerAPI.cartPage.checkout(cartItems);
+      clearCart();
+      alert('Booking confirmed! Check your bookings page.');
+      navigate('/bookings');
+    } catch (error) {
+      console.error('Booking failed:', error);
+      alert(`Booking failed: ${error.message || 'Please try again.'}`);
+    }
   };
 
-  // Sync with localStorage changes and sanitize initial data
+  // Sync with localStorage changes
   useEffect(() => {
-    const sanitize = (items) => {
-      return items.map(item => {
-        const basePrice = getBasePrice(item);
-        const nights = calculateNights(item.checkIn, item.checkOut);
-        const rooms = item.rooms || 1;
-        return {
-          ...item,
-          basePrice: basePrice,
-          price: basePrice * rooms * nights
-        };
-      });
-    };
-
     const handleStorageChange = () => {
       const stored = JSON.parse(localStorage.getItem("hotelCart") || "[]");
-      setCartItems(sanitize(stored));
+      setCartItems(stored);
     };
-
-    // Initial sanitization
-    const initial = JSON.parse(localStorage.getItem("hotelCart") || "[]");
-    const sanitized = sanitize(initial);
-    if (JSON.stringify(initial) !== JSON.stringify(sanitized)) {
-      setCartItems(sanitized);
-      localStorage.setItem("hotelCart", JSON.stringify(sanitized));
-    }
 
     window.addEventListener("cartUpdated", handleStorageChange);
     return () => window.removeEventListener("cartUpdated", handleStorageChange);
@@ -103,7 +90,6 @@ const Cart = () => {
   const saveEdit = (index) => {
     const item = cartItems[index];
     const nights = calculateNights(editForm.checkIn, editForm.checkOut);
-    const basePrice = getBasePrice(item);
     
     const updated = cartItems.map((cartItem, i) => {
       if (i === index) {
@@ -114,8 +100,7 @@ const Cart = () => {
           checkIn: editForm.checkIn,
           checkOut: editForm.checkOut,
           nights: nights,
-          basePrice: basePrice,
-          price: basePrice * editForm.rooms * nights
+          price: item.basePrice * editForm.rooms * nights
         };
       }
       return cartItem;
@@ -131,15 +116,13 @@ const Cart = () => {
     const item = cartItems[index];
     const newRooms = Math.max(1, Math.min(10, (item.rooms || 1) + delta));
     const nights = calculateNights(item.checkIn, item.checkOut);
-    const basePrice = getBasePrice(item);
     
     const updated = cartItems.map((cartItem, i) => {
       if (i === index) {
         return {
           ...cartItem,
           rooms: newRooms,
-          basePrice: basePrice,
-          price: basePrice * newRooms * nights
+          price: item.basePrice * newRooms * nights
         };
       }
       return cartItem;
@@ -153,11 +136,7 @@ const Cart = () => {
   const totalPrice = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
   const totalRooms = cartItems.reduce((sum, item) => sum + (item.rooms || 1), 0);
 
-  // Proceed to checkout
-  const handleCheckout = () => {
-    if (cartItems.length === 0) return;
-    navigate("/checkout");
-  };
+  // Proceed to checkout - removed duplicate function
 
   return (
     <div className="min-h-screen pt-24 pb-12 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
@@ -388,9 +367,9 @@ const Cart = () => {
 
                   <button 
                     onClick={handleCheckout}
-                    disabled={cartItems.length === 0 || cartItems.some(item => !item.checkIn || !item.checkOut)}
+                    disabled={cartItems.length === 0 || cartItems.some(item => !item.checkIn || !item.checkOut || item.checkIn === 'Not selected' || item.checkOut === 'Not selected')}
                     className={`w-full py-3 rounded-lg font-semibold mb-4 transition-colors ${
-                      cartItems.length === 0 || cartItems.some(item => !item.checkIn || !item.checkOut)
+                      cartItems.length === 0 || cartItems.some(item => !item.checkIn || !item.checkOut || item.checkIn === 'Not selected' || item.checkOut === 'Not selected')
                         ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                         : 'bg-yellow-500 text-gray-900 hover:bg-yellow-400'
                     }`}

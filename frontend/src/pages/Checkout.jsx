@@ -13,6 +13,7 @@ import { useAuth } from "../context/AuthContext";
 
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { calculateNights, currency, downloadInvoice } from "../utils/bookingUtils";
+import api from "../services/api";
 
 
 
@@ -59,33 +60,37 @@ const Checkout = () => {
     setStep(2);
   };
 
-  const handlePaymentSubmit = (e) => {
+  const handlePaymentSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate payment processing
-    setTimeout(() => {
-      // Create booking records
-      const bookings = cartItems.map((item, index) => ({
-        id: Date.now() + index,
-        hotel: item.hotel,
-        city: item.city || "Mumbai",
-        roomType: item.roomType,
-        checkIn: item.checkIn,
-        checkOut: item.checkOut,
-        guests: item.guests,
-        rooms: item.rooms,
-        price: item.price,
-        status: "confirmed",
-        bookingDate: new Date().toISOString().split('T')[0],
-        image: item.image,
-        guestDetails
-      }));
+    try {
+      // Create bookings for each cart item
+      const bookingPromises = cartItems.map(item => {
+        const bookingData = {
+          hotelId: item.hotelId || 1, // Fallback for legacy cart items
+          roomTypeId: item.roomTypeId || 1,
+          checkInDate: item.checkIn,
+          checkOutDate: item.checkOut,
+          adults: item.guests || 2,
+          children: 0,
+          rooms: item.rooms || 1,
+          // Guest Details
+          guestFirstName: guestDetails.firstName,
+          guestLastName: guestDetails.lastName,
+          guestEmail: guestDetails.email,
+          guestPhone: guestDetails.phone
+        };
+        return api.post('/bookings', bookingData);
+      });
 
-      // Save to bookings
+      const responses = await Promise.all(bookingPromises);
+      console.log('Bookings created:', responses);
+
+      // Save to local booking history (optional, or rely on backend)
       const existingBookings = JSON.parse(localStorage.getItem("bookings") || "[]");
-      localStorage.setItem("bookings", JSON.stringify([...bookings, ...existingBookings]));
-
+      // We can add the response DTOs here if needed
+      
       // Clear cart
       localStorage.removeItem("hotelCart");
       window.dispatchEvent(new Event("cartUpdated"));
@@ -93,7 +98,12 @@ const Checkout = () => {
       setLoading(false);
       setOrderComplete(true);
       setStep(3);
-    }, 2000);
+      toast.success("Booking confirmed successfully!");
+    } catch (error) {
+      console.error("Booking Error:", error);
+      toast.error(error.message || "Failed to process booking");
+      setLoading(false);
+    }
   };
 
   if (orderComplete) {

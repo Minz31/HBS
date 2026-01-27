@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import OwnerLayout from '../../layouts/OwnerLayout';
 import {
@@ -12,50 +12,67 @@ import {
     FaClock,
 } from 'react-icons/fa';
 import { useHotel } from '../../context/HotelContext';
+import { ownerDashboard } from '../../services/completeAPI';
 
 const HotelierDashboard = () => {
     const [timeRange, setTimeRange] = useState('week');
     const { selectedHotel } = useHotel();
 
-    // Mock data
+    const [statsData, setStatsData] = useState(null);
+    const [recentBookings, setRecentBookings] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            setIsLoading(true);
+            try {
+                const [stats, bookings] = await Promise.all([
+                    ownerDashboard.getStats(),
+                    ownerDashboard.getMyBookings()
+                ]);
+                setStatsData(stats);
+                setRecentBookings(bookings.slice(0, 5)); // Top 5 recent
+            } catch (error) {
+                console.error("Error fetching dashboard data:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    // Derived stats for display
     const stats = [
         {
             label: 'Total Bookings',
-            value: '342',
+            value: statsData?.totalBookings || 0,
             icon: FaCalendarAlt,
             gradient: 'from-blue-500 to-indigo-600',
         },
         {
-            label: 'Occupancy Rate',
-            value: '78%',
+            label: 'Total Revenue',
+            value: statsData?.totalRevenue ? `₹${statsData.totalRevenue.toLocaleString()}` : '₹0',
+            icon: FaDollarSign,
+            gradient: 'from-green-500 to-emerald-600',
+        },
+        {
+            label: 'Active Bookings',
+            value: statsData?.activeBookings || 0,
             icon: FaHotel,
             gradient: 'from-purple-500 to-pink-600',
         },
+         {
+            label: 'Total Hotels',
+            value: statsData?.totalHotels || 0,
+            icon: FaHotel,
+            gradient: 'from-orange-500 to-red-600',
+        },
     ];
 
-    const recentBookings = [
-        { id: 1, guest: 'John Smith', room: 'Deluxe', checkIn: '2026-01-22', status: 'Confirmed' },
-        { id: 2, guest: 'Emma Johnson', room: 'Standard', checkIn: '2026-01-23', status: 'Pending' },
-        { id: 3, guest: 'Michael Brown', room: 'Standard AC', checkIn: '2026-01-24', status: 'Confirmed' },
-        { id: 4, guest: 'Sarah Davis', room: 'Standard', checkIn: '2026-01-25', status: 'Confirmed' },
-        { id: 5, guest: 'David Wilson', room: 'Deluxe', checkIn: '2026-01-26', status: 'Pending' },
-    ];
-
-    const upcomingTasks = [
-        { id: 1, task: 'Update room availability for Feb', priority: 'High', time: '2 hours ago' },
-        { id: 2, task: 'Respond to 3 new reviews', priority: 'Medium', time: '5 hours ago' },
-        { id: 3, task: 'Process refund request', priority: 'High', time: '1 day ago' },
-        { id: 4, task: 'Upload new hotel photos', priority: 'Low', time: '2 days ago' },
-    ];
-
-    const monthlyData = [
-        { month: 'Jan', revenue: 35000, bookings: 280 },
-        { month: 'Feb', revenue: 42000, bookings: 320 },
-        { month: 'Mar', revenue: 38000, bookings: 295 },
-        { month: 'Apr', revenue: 45000, bookings: 340 },
-        { month: 'May', revenue: 52000, bookings: 380 },
-        { month: 'Jun', revenue: 48000, bookings: 360 },
-    ];
+    if (isLoading) {
+        return <OwnerLayout><div className="flex justify-center items-center h-screen">Loading...</div></OwnerLayout>;
+    }
 
     return (
         <OwnerLayout>
@@ -64,22 +81,26 @@ const HotelierDashboard = () => {
                     {/* Header */}
                     <div className="mb-8">
                         <div className="flex items-center gap-3 mb-2">
-                            <img
-                                src={selectedHotel?.image}
-                                alt={selectedHotel?.name}
-                                className="h-12 w-12 rounded-xl object-cover shadow-lg"
-                            />
+                            {selectedHotel?.image && (
+                                <img
+                                    src={selectedHotel.image}
+                                    alt={selectedHotel.name}
+                                    className="h-12 w-12 rounded-xl object-cover shadow-lg"
+                                />
+                            )}
                             <div>
                                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                    {selectedHotel?.name} 👋
+                                    {selectedHotel ? `${selectedHotel.name} Dashboard` : 'Owner Dashboard'} 👋
                                 </h1>
-                                <p className="text-gray-600 dark:text-gray-400">
-                                    {selectedHotel?.location} • {selectedHotel?.totalRooms} Rooms
-                                </p>
+                                {selectedHotel && (
+                                    <p className="text-gray-600 dark:text-gray-400">
+                                        {selectedHotel.location} • {selectedHotel.totalRooms} Rooms
+                                    </p>
+                                )}
                             </div>
                         </div>
                         <p className="text-gray-600 dark:text-gray-400 mt-2">
-                            Here's what's happening with your property today
+                            Here's what's happening with your properties today
                         </p>
                     </div>
 
@@ -159,19 +180,20 @@ const HotelierDashboard = () => {
                                 <FaCalendarAlt className="h-6 w-6 text-blue-500" />
                             </div>
                             <div className="space-y-3">
-                                {recentBookings.map((booking) => (
+                                {recentBookings.length === 0 ? <p className="text-gray-500 p-4">No recent bookings</p> : 
+                                recentBookings.map((booking) => (
                                     <div
                                         key={booking.id}
                                         className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 rounded-xl hover:shadow-md transition-all"
                                     >
                                         <div>
-                                            <p className="font-semibold text-gray-900 dark:text-white">{booking.guest}</p>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">{booking.room}</p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-500">{booking.checkIn}</p>
+                                            <p className="font-semibold text-gray-900 dark:text-white">{booking.guestFirstName} {booking.guestLastName}</p>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">{booking.roomTypeName}</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-500">{booking.checkInDate}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-bold text-gray-900 dark:text-white">Confirmed</p>
-                                            <span className={`text-xs px-2 py-1 rounded-full ${booking.status === 'Confirmed'
+                                            <p className="font-bold text-gray-900 dark:text-white">{booking.paymentStatus}</p>
+                                            <span className={`text-xs px-2 py-1 rounded-full ${booking.status === 'CONFIRMED'
                                                 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                                                 : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
                                                 }`}>
@@ -183,33 +205,14 @@ const HotelierDashboard = () => {
                             </div>
                         </div>
 
-                        {/* Upcoming Tasks */}
+                        {/* Upcoming Tasks - Placeholder */}
                         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Upcoming Tasks</h2>
                                 <FaClock className="h-6 w-6 text-yellow-500" />
                             </div>
                             <div className="space-y-3">
-                                {upcomingTasks.map((task) => (
-                                    <div
-                                        key={task.id}
-                                        className="flex items-start gap-3 p-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 rounded-xl hover:shadow-md transition-all"
-                                    >
-                                        <input type="checkbox" className="mt-1 h-5 w-5 rounded border-gray-300 accent-blue-600" />
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-gray-900 dark:text-white">{task.task}</p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className={`text-xs px-2 py-1 rounded-full ${task.priority === 'High' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                                    task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                                                        'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                                    }`}>
-                                                    {task.priority}
-                                                </span>
-                                                <span className="text-xs text-gray-500">{task.time}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
+                                <p className="text-gray-500">No pending tasks.</p>
                             </div>
                         </div>
                     </div>

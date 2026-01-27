@@ -1,5 +1,6 @@
 package com.hotel.controller;
 
+import java.security.Principal;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,9 @@ import com.hotel.dtos.UserRegDTO;
 import com.hotel.entities.User;
 import com.hotel.repository.UserRepository;
 import com.hotel.service.UserService;
+import com.hotel.custom_exceptions.ResourceNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.modelmapper.ModelMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -43,6 +46,7 @@ public class UserController {
     private final UserService userService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ModelMapper modelMapper;
 
     @GetMapping
     @Operation(description = "Get all users")
@@ -122,17 +126,17 @@ public class UserController {
             if (user == null) {
                 return ResponseEntity.notFound().build();
             }
-            
+
             // Test common passwords against the hash
-            String[] testPasswords = {"1234", "password", "123456", "admin", "user", "test", "rami", "12345"};
-            
+            String[] testPasswords = { "1234", "password", "123456", "admin", "user", "test", "rami", "12345" };
+
             for (String testPwd : testPasswords) {
                 boolean matches = passwordEncoder.matches(testPwd, user.getPassword());
                 if (matches) {
                     return ResponseEntity.ok("Password for " + email + " is: " + testPwd);
                 }
             }
-            
+
             return ResponseEntity.ok("Password not found in common list. Hash: " + user.getPassword());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
@@ -146,10 +150,62 @@ public class UserController {
         return ResponseEntity.ok(userService.encryptPasswords());
     }
 
-    @GetMapping("/generate-hash")
-    @Operation(description = "Generate BCrypt hash for password")
-    public ResponseEntity<?> generateHash(@org.springframework.web.bind.annotation.RequestParam String password) {
-        String hash = passwordEncoder.encode(password);
-        return ResponseEntity.ok("BCrypt hash for '" + password + "': " + hash);
+    @GetMapping("/profile")
+    @Operation(description = "Get current user profile")
+    public ResponseEntity<?> getCurrentUserProfile(Principal principal) {
+        log.info("Getting current user profile for: {}", principal.getName());
+        try {
+            User user = userRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            return ResponseEntity.ok(modelMapper.map(user, UserDTO.class));
+        } catch (Exception e) {
+            log.error("Error getting user profile", e);
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/profile")
+    @Operation(description = "Update current user profile")
+    public ResponseEntity<?> updateCurrentUserProfile(@RequestBody @Valid User user, Principal principal) {
+        log.info("Updating current user profile for: {}", principal.getName());
+        try {
+            User currentUser = userRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+            log.info("DEBUG - Principal email: {}, Current user ID: {}, Incoming email: {}",
+                    principal.getName(), currentUser.getId(), user.getEmail());
+
+            return ResponseEntity.ok(userService.updateDetails(currentUser.getId(), user));
+        } catch (Exception e) {
+            log.error("Error updating user profile", e);
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
+    }
+
+    @PatchMapping("/change-password")
+    @Operation(description = "Change user password")
+    public ResponseEntity<?> changePassword(
+            @org.springframework.web.bind.annotation.RequestParam String currentPassword,
+            @org.springframework.web.bind.annotation.RequestParam String newPassword,
+            Principal principal) {
+        log.info("Changing password for user: {}", principal.getName());
+        try {
+            User user = userRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+            // Verify current password
+            if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+                return ResponseEntity.badRequest().body("Current password is incorrect");
+            }
+
+            // Update password
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+
+            return ResponseEntity.ok("Password changed successfully");
+        } catch (Exception e) {
+            log.error("Error changing password", e);
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
     }
 }

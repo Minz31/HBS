@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
+import customerAPI from '../services/customerAPI';
 
 const AuthContext = createContext(null);
 
@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setLoading(true);
-      const response = await api.post('/users/signin', { email, password });
+      const response = await customerAPI.authPage.login(email, password);
       
       // Check if response has token (backend returns AuthResp with jwt and message fields)
       const token = response.jwt || response.token;

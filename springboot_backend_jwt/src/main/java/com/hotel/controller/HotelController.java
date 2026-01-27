@@ -27,7 +27,8 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/hotels")
-@CrossOrigin(origins = { "http://localhost:3000", "http://localhost:5173", "http://localhost:5174", "http://localhost:5175" })
+@CrossOrigin(origins = { "http://localhost:3000", "http://localhost:5173", "http://localhost:5174",
+        "http://localhost:5175" })
 @RequiredArgsConstructor
 public class HotelController {
 
@@ -36,6 +37,11 @@ public class HotelController {
     @GetMapping
     public ResponseEntity<List<Hotel>> getAllHotels() {
         return ResponseEntity.ok(hotelService.getAllHotels());
+    }
+
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<Hotel>> getHotelsByStatus(@PathVariable String status) {
+        return ResponseEntity.ok(hotelService.getHotelsByStatus(status));
     }
 
     @GetMapping("/{id}")
@@ -56,29 +62,32 @@ public class HotelController {
         return ResponseEntity.ok(hotelService.getHotelRooms(id));
     }
 
-    @PostMapping
-    @PreAuthorize("hasAuthority('ROLE_HOTEL_MANAGER')")
-    public ResponseEntity<Hotel> createHotel(@RequestBody @Valid HotelDTO hotelDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(hotelService.createHotel(hotelDTO));
+    @GetMapping("/{hotelId}/rooms/{roomTypeId}/availability")
+    public ResponseEntity<Boolean> checkRoomAvailability(
+            @PathVariable Long hotelId,
+            @PathVariable Long roomTypeId,
+            @RequestParam String checkIn,
+            @RequestParam String checkOut,
+            @RequestParam Integer rooms) {
+        return ResponseEntity.ok(hotelService.checkRoomAvailability(hotelId, roomTypeId, checkIn, checkOut, rooms));
     }
 
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_HOTEL_MANAGER')")
-    public ResponseEntity<Hotel> updateHotel(@PathVariable Long id, @RequestBody @Valid HotelDTO hotelDTO) {
-        return ResponseEntity.ok(hotelService.updateHotel(id, hotelDTO));
+    @PostMapping("/register")
+    @PreAuthorize("hasAuthority('ROLE_HOTEL_MANAGER') or hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Hotel> registerHotel(@RequestBody @Valid HotelDTO hotelDTO,
+            java.security.Principal principal) {
+        return ResponseEntity.ok(hotelService.addNewHotel(hotelDTO, principal.getName()));
     }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_HOTEL_MANAGER')")
-    public ResponseEntity<?> deleteHotel(@PathVariable Long id) {
-        return ResponseEntity.ok(hotelService.deleteHotel(id));
+    @org.springframework.web.bind.annotation.PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Hotel> updateHotelStatus(@PathVariable Long id, @RequestParam String status) {
+        return ResponseEntity.ok(hotelService.updateHotelStatus(id, status));
     }
 
-    @PostMapping("/{id}/rooms")
-    @PreAuthorize("hasAuthority('ROLE_HOTEL_MANAGER')")
-    public ResponseEntity<RoomType> addRoomType(@PathVariable Long id, @RequestBody @Valid RoomTypeDTO roomTypeDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(hotelService.addRoomType(id, roomTypeDTO));
+    @GetMapping("/destinations")
+    public ResponseEntity<List<com.hotel.dtos.DestinationDTO>> getPopularDestinations(
+            @RequestParam(defaultValue = "city") String type) {
+        return ResponseEntity.ok(hotelService.getPopularDestinations(type));
     }
 }

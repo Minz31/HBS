@@ -4,6 +4,9 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -56,9 +59,18 @@ public class Hotel extends BaseEntity {
     @Column(name = "rating_text")
     private String ratingText; // Excellent, Good, etc.
 
-    @Column(name = "pet_friendly")
-    private Boolean petFriendly = false;
+    // Approval fields
+    private String status; // PENDING, APPROVED, REJECTED
 
-    @Column(name = "meals_included")
-    private String meals; // Breakfast included, All meals, etc.
+    @Column(name = "rejection_reason")
+    private String rejectionReason;
+
+    @Column(name = "price_range")
+    private String priceRange; // "₹5,000 - ₹15,000"
+
+    // Owner relationship
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    @ToString.Exclude
+    private User owner; // Links to ROLE_HOTEL_MANAGER
 }

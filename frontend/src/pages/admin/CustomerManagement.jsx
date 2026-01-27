@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminLayout from '../../layouts/AdminLayout';
 import {
     FaUsers,
@@ -13,89 +13,41 @@ import {
     FaStar,
     FaHistory,
 } from 'react-icons/fa';
+import { adminAPI } from '../../services/completeAPI';
 
 const CustomerManagement = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [filter, setFilter] = useState('all');
 
-    // Mock customer data
-    const [customers, setCustomers] = useState([
-        {
-            id: 1,
-            name: 'Aadesh Kumar',
-            email: 'aadesh@email.com',
-            phone: '+91 98765 43210',
-            joinDate: '2025-08-15',
-            status: 'active',
-            totalBookings: 12,
-            totalSpent: '₹85,400',
-            lastActive: '2026-01-24',
-            avatar: 'A',
-            recentBookings: [
-                { hotel: 'Taj Lands End', date: '2026-01-20', amount: '₹18,500' },
-                { hotel: 'The Oberoi', date: '2026-01-05', amount: '₹22,000' },
-            ],
-        },
-        {
-            id: 2,
-            name: 'Priya Sharma',
-            email: 'priya.s@email.com',
-            phone: '+91 87654 32109',
-            joinDate: '2025-10-22',
-            status: 'active',
-            totalBookings: 8,
-            totalSpent: '₹52,300',
-            lastActive: '2026-01-23',
-            avatar: 'P',
-            recentBookings: [
-                { hotel: 'JW Marriott', date: '2026-01-18', amount: '₹15,000' },
-            ],
-        },
-        {
-            id: 3,
-            name: 'Rahul Verma',
-            email: 'rahul.v@email.com',
-            phone: '+91 76543 21098',
-            joinDate: '2025-06-10',
-            status: 'inactive',
-            totalBookings: 3,
-            totalSpent: '₹24,500',
-            lastActive: '2025-12-15',
-            avatar: 'R',
-            recentBookings: [],
-        },
-        {
-            id: 4,
-            name: 'Sneha Patel',
-            email: 'sneha.p@email.com',
-            phone: '+91 65432 10987',
-            joinDate: '2025-11-05',
-            status: 'suspended',
-            totalBookings: 5,
-            totalSpent: '₹38,200',
-            lastActive: '2026-01-10',
-            avatar: 'S',
-            suspensionReason: 'Multiple payment chargebacks',
-            recentBookings: [],
-        },
-        {
-            id: 5,
-            name: 'Amit Singh',
-            email: 'amit.s@email.com',
-            phone: '+91 54321 09876',
-            joinDate: '2025-09-18',
-            status: 'active',
-            totalBookings: 15,
-            totalSpent: '₹1,20,800',
-            lastActive: '2026-01-24',
-            avatar: 'A',
-            recentBookings: [
-                { hotel: 'Rambagh Palace', date: '2026-01-22', amount: '₹45,000' },
-                { hotel: 'ITC Grand Chola', date: '2026-01-15', amount: '₹19,000' },
-            ],
-        },
-    ]);
+    // Load customers from API
+    useEffect(() => {
+        loadCustomers();
+    }, []);
+
+    const loadCustomers = async () => {
+        try {
+            const data = await adminAPI.getAllUsers();
+            // Filter only customers (ROLE_CUSTOMER) if needed, or show all
+            const customerList = data.map(user => ({
+                id: user.id,
+                name: `${user.firstName} ${user.lastName}`,
+                email: user.email,
+                phone: user.phone || 'N/A',
+                joinDate: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A',
+                status: user.accountStatus || 'ACTIVE', // Default to active if null
+                totalBookings: 0, // Placeholder
+                totalSpent: '₹0', // Placeholder
+                lastActive: 'N/A',
+                avatar: (user.firstName || 'U').charAt(0),
+                recentBookings: []
+            }));
+            setCustomers(customerList);
+        } catch (error) {
+            console.error('Error loading customers:', error);
+            // setCustomers([]); // Keep empty or mock on error? Better empty.
+        }
+    };
 
     // Filter and search customers
     const filteredCustomers = customers.filter(customer => {
@@ -105,20 +57,34 @@ const CustomerManagement = () => {
         return matchesSearch && matchesFilter;
     });
 
-    // Toggle customer status
-    const toggleStatus = (customerId, newStatus) => {
-        setCustomers(prev => prev.map(customer =>
-            customer.id === customerId ? { ...customer, status: newStatus } : customer
-        ));
-    };
-
-    // Delete customer
-    const handleDelete = (customerId) => {
-        if (confirm('Are you sure you want to delete this customer account?')) {
-            setCustomers(prev => prev.filter(customer => customer.id !== customerId));
-            setSelectedCustomer(null);
+    // Toggle customer status (Suspend/Activate)
+    const toggleStatus = async (customer) => {
+        const isSuspended = customer.status === 'SUSPENDED';
+        try {
+            if (isSuspended) {
+                // Activate
+                await adminAPI.activateUser(customer.id);
+                setCustomers(prev => prev.map(c => 
+                    c.id === customer.id ? { ...c, status: 'ACTIVE' } : c
+                ));
+                alert(`User ${customer.name} activated successfully.`);
+            } else {
+                // Suspend
+                const reason = prompt("Enter suspension reason:");
+                if (!reason) return;
+                await adminAPI.suspendUser(customer.id, reason);
+                setCustomers(prev => prev.map(c => 
+                    c.id === customer.id ? { ...c, status: 'SUSPENDED' } : c
+                ));
+            }
+        } catch (error) {
+            console.error("Failed to update user status", error);
+            alert("Failed to update status");
         }
     };
+
+    // Delete customer (Not supported backend, use Suspend)
+    // const handleDelete = (customerId) => { ... } // Removing delete as per backend limitations
 
     return (
         <AdminLayout>
@@ -213,10 +179,21 @@ const CustomerManagement = () => {
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={() => setSelectedCustomer(customer)}
-                                                        className="p-2 border border-yellow-400 rounded-lg hover:bg-yellow-50 dark:hover:bg-gray-700 transition-colors"
+                                                        className="p-2 border border-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors text-blue-600 dark:text-blue-400"
                                                         title="View Details"
                                                     >
-                                                        <FaEye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                                                        <FaEye className="h-4 w-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => toggleStatus(customer)}
+                                                        className={`p-2 border rounded-lg transition-colors ${
+                                                            customer.status === 'SUSPENDED' 
+                                                            ? 'border-green-400 text-green-600 hover:bg-green-50' 
+                                                            : 'border-red-400 text-red-600 hover:bg-red-50'
+                                                        }`}
+                                                        title={customer.status === 'SUSPENDED' ? "Activate User" : "Suspend User"}
+                                                    >
+                                                        {customer.status === 'SUSPENDED' ? <FaCheck className="h-4 w-4" /> : <FaBan className="h-4 w-4" />}
                                                     </button>
                                                 </div>
                                             </td>
@@ -312,10 +289,17 @@ const CustomerManagement = () => {
                         <div className="flex gap-3">
 
                             <button
-                                onClick={() => handleDelete(selectedCustomer.id)}
-                                className="px-4 py-3 border border-red-400 text-red-600 dark:text-red-400 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                onClick={() => {
+                                    toggleStatus(selectedCustomer);
+                                    setSelectedCustomer(null);
+                                }}
+                                className={`px-4 py-3 border rounded-xl font-semibold transition-colors ${
+                                    selectedCustomer.status === 'SUSPENDED'
+                                    ? 'border-green-400 text-green-600 hover:bg-green-50'
+                                    : 'border-red-400 text-red-600 hover:bg-red-50'
+                                }`}
                             >
-                                Delete
+                                {selectedCustomer.status === 'SUSPENDED' ? 'Activate Account' : 'Suspend Account'}
                             </button>
                         </div>
                     </div>

@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import AdminLayout from '../../layouts/AdminLayout';
+import { adminAPI } from '../../services/completeAPI';
 import {
     FaUsers,
     FaHotel,
@@ -12,52 +14,95 @@ import {
 import { Link } from 'react-router-dom';
 
 const SuperAdminDashboard = () => {
-    // Mock statistics
-    const stats = [
+    const [stats, setStats] = useState([
         {
-            label: 'Total Hotels',
-            value: '1,247',
-            icon: FaHotel,
+            label: 'Total Users',
+            value: 'Loading...',
+            icon: FaUsers,
             gradient: 'from-blue-500 to-indigo-600',
-            link: '/superadmin/hotels',
+            link: '/admin/customers', // Updated link
+        },
+        {
+            label: 'Total Revenue',
+            value: 'Loading...',
+            icon: FaChartLine, // Changed icon
+            gradient: 'from-green-500 to-emerald-600',
+            link: '/admin/payments', // Updated link
         },
         {
             label: 'Pending Approvals',
-            value: '18',
+            value: 'Loading...',
             icon: FaClipboardList,
             gradient: 'from-amber-500 to-orange-600',
-            link: '/superadmin/approvals',
+            link: '/admin/approvals', // Updated link
         },
-        {
-            label: 'Open Complaints',
-            value: '42',
-            icon: FaExclamationTriangle,
-            gradient: 'from-red-500 to-pink-600',
-            link: '/superadmin/complaints',
-        },
-    ];
-
-    // Quick actions
+    ]);
+    
+    // Quick actions (Updated links)
     const quickActions = [
-        { label: 'Approve Hotels', icon: FaCheckCircle, link: '/superadmin/approvals', color: 'from-blue-600 to-blue-700' },
-        { label: 'View Analytics', icon: FaChartLine, link: '/superadmin/analytics', color: 'from-emerald-600 to-emerald-700' },
+        { label: 'Approve Hotels', icon: FaCheckCircle, link: '/admin/approvals', color: 'from-blue-600 to-blue-700' }, // Updated link
+        { label: 'Platform Stats', icon: FaChartLine, link: '/admin/analytics', color: 'from-emerald-600 to-emerald-700' }, // Updated link
     ];
 
-    // Recent activities
-    const recentActivities = [
-        { id: 1, action: 'New hotel registered', hotel: 'Grand Palace Hotel', time: '5 min ago', type: 'hotel' },
-        { id: 2, action: 'Complaint resolved', user: 'John Doe', time: '15 min ago', type: 'complaint' },
-        { id: 3, action: 'Hotel approved', hotel: 'Sea View Resort', time: '1 hour ago', type: 'approval' },
-        { id: 4, action: 'New user registered', user: 'Sarah Smith', time: '2 hours ago', type: 'user' },
-        { id: 5, action: 'Hotel removed', hotel: 'Old Inn', time: '3 hours ago', type: 'removal' },
-    ];
+    const [pendingApprovals, setPendingApprovals] = useState([]);
+    const [recentActivities, setRecentActivities] = useState([]); // Can't easily mock this from current APIs without a Logs endpoint
 
-    // Pending approvals
-    const pendingApprovals = [
-        { id: 1, name: 'Sunset Beach Hotel', location: 'Goa', owner: 'Raj Kumar', date: '2026-01-23' },
-        { id: 2, name: 'Mountain View Lodge', location: 'Shimla', owner: 'Priya Sharma', date: '2026-01-22' },
-        { id: 3, name: 'City Center Inn', location: 'Mumbai', owner: 'Amit Patel', date: '2026-01-21' },
-    ];
+    useEffect(() => {
+        fetchDashboardData();
+    }, []);
+
+    const fetchDashboardData = async () => {
+        try {
+            const [users, payments, pendingHotels] = await Promise.all([
+                adminAPI.getAllUsers(),
+                adminAPI.getAllPayments(),
+                adminAPI.getPendingHotels()
+            ]);
+
+            const totalRevenue = payments.reduce((sum, booking) => sum + (booking.totalPrice || 0), 0);
+            
+            setStats([
+                {
+                    label: 'Total Users',
+                    value: users.length.toString(),
+                    icon: FaUsers,
+                    gradient: 'from-blue-500 to-indigo-600',
+                    link: '/admin/customers',
+                },
+                {
+                    label: 'Total Revenue',
+                    value: `₹${totalRevenue.toLocaleString()}`,
+                    icon: FaChartLine,
+                    gradient: 'from-green-500 to-emerald-600',
+                    link: '/admin/payments',
+                },
+                {
+                    label: 'Pending Approvals',
+                    value: pendingHotels.length.toString(),
+                    icon: FaClipboardList,
+                    gradient: 'from-amber-500 to-orange-600',
+                    link: '/admin/approvals',
+                },
+            ]);
+
+            // Set pending approvals for the list
+            setPendingApprovals(pendingHotels.slice(0, 3).map(h => ({
+                id: h.id,
+                name: h.name,
+                location: `${h.city}, ${h.state}`,
+                owner: h.owner ? `${h.owner.firstName} ${h.owner.lastName}` : 'Unknown', // Check if owner data is in Hotel entity
+                date: new Date().toISOString().split('T')[0] // Fallback as createdDate might be missing in simple Hotel entity view
+            })));
+
+            // Mock recent activities for now as backend lacks logs
+            setRecentActivities([
+                 { id: 1, action: 'System check', user: 'Admin', time: 'Just now', type: 'system' }
+            ]);
+
+        } catch (error) {
+            console.error("Failed to fetch dashboard stats", error);
+        }
+    };
 
     return (
         <AdminLayout>

@@ -23,7 +23,11 @@ public class HotelDTO {
     private String location;
     private String distance;
     private String ratingText;
-    private Boolean petFriendly;
-    private String meals;
     private Integer starRating;
+    private String priceRange;
+
+    // Admin/Owner fields
+    private Long ownerId;
+    private String status;
+    private String rejectionReason;
 }

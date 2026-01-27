@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import OwnerLayout from '../../layouts/OwnerLayout';
+import { useHotel } from '../../context/HotelContext';
+import { ownerHotelManagement } from '../../services/completeAPI';
 import {
     FaBuilding,
     FaMapMarkerAlt,
@@ -16,36 +18,69 @@ import {
 } from 'react-icons/fa';
 
 const HotelProfileManagement = () => {
+    const { selectedHotel } = useHotel();
+    const [isLoading, setIsLoading] = useState(false);
+    
     const [hotelData, setHotelData] = useState({
-        name: 'Grand Luxury Hotel & Spa',
-        category: 'Luxury',
-        rating: 5,
-        address: '123 Main Street',
-        city: 'New York',
-        state: 'NY',
-        zipCode: '10001',
-        country: 'United States',
-        phone: '+1 (555) 123-4567',
-        email: 'info@grandluxury.com',
-        website: 'www.grandluxury.com',
-        description: 'Experience unparalleled luxury in the heart of Manhattan...',
-        checkInTime: '3:00 PM',
-        checkOutTime: '11:00 AM',
+        name: '',
+        category: 'Standard',
+        rating: 3,
+        address: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: '',
+        phone: '',
+        email: '',
+        website: '',
+        description: '',
+        checkInTime: '12:00',
+        checkOutTime: '11:00',
     });
 
-    const [amenities, setAmenities] = useState(
-        'Free WiFi, Swimming Pool, Fitness Center, Spa & Wellness, Restaurant, Room Service, Conference Rooms'
-    );
-
-    const [images, setImages] = useState([
-        { id: 1, url: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=60', type: 'main' },
-        { id: 2, url: 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800&q=60', type: 'gallery' },
-        { id: 3, url: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&q=60', type: 'gallery' },
-        { id: 4, url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=60', type: 'room' },
-        { id: 5, url: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&q=60', type: 'room' },
-    ]);
+    const [amenities, setAmenities] = useState('');
+    const [images, setImages] = useState([]); // Array of strings (URLs)
 
     const [activeTab, setActiveTab] = useState('basic');
+
+    useEffect(() => {
+        if (selectedHotel) {
+            fetchHotelDetails();
+        }
+    }, [selectedHotel]);
+
+    const fetchHotelDetails = async () => {
+        setIsLoading(true);
+        try {
+            // Use ownerHotelManagement.getHotel or use selectedHotel data if redundant?
+            // selectedHotel from context might be stale or partial. Better to fetch fresh.
+            const data = await ownerHotelManagement.getHotel(selectedHotel.id);
+            setHotelData({
+                name: data.name || '',
+                category: 'Standard', // Backend might not have category enum mapped? HotelDTO has? Check.
+                // HotelDTO has: name, city, state, country, zipCode, address, description, active (boolean)
+                // It lacks: phone, email, website, checkIn/Out, rating (it has starRating?)
+                // Let's rely on what's available.
+                city: data.city || '',
+                state: data.state || '',
+                zipCode: data.zipCode || '',
+                country: data.country || '',
+                address: data.address || '',
+                description: data.description || '',
+                // Missing fields in backend will remain blank or default
+            });
+            
+            // Parse amenities/images if needed, or if API returns list for DTO
+            // ownerHotelManagement.getHotel returns HotelDTO which has List<String> images/amenities.
+            setAmenities( Array.isArray(data.amenities) ? data.amenities.join(', ') : (data.amenities || '') );
+            setImages( Array.isArray(data.images) ? data.images : [] );
+            
+        } catch (error) {
+            console.error("Failed to fetch hotel details", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleInputChange = (e) => {
         setHotelData({ ...hotelData, [e.target.name]: e.target.value });
@@ -55,56 +90,51 @@ const HotelProfileManagement = () => {
         setAmenities(e.target.value);
     };
 
-    // Image upload handler
+    // Image upload handler (Mock - just adds base64 or placeholder)
     const handleImageUpload = (files) => {
         if (!files || files.length === 0) return;
         
         files.forEach(file => {
-            if (file.size > 5 * 1024 * 1024) {
-                alert(`File ${file.name} is too large. Max 5MB allowed.`);
-                return;
-            }
-            
             const reader = new FileReader();
             reader.onload = (e) => {
-                const newImage = {
-                    id: Date.now() + Math.random(),
-                    url: e.target.result,
-                    type: 'gallery',
-                    name: file.name
-                };
-                setImages(prev => [...prev, newImage]);
+                // In real app, upload to server and get URL. Here we define logic.
+                // For now, assume backend accepts Base64 or we just use it for display
+                // Note: Sending large Base64 strings to backend JSON column is bad practice but fits current "MVP".
+                setImages(prev => [...prev, e.target.result]);
             };
             reader.readAsDataURL(file);
         });
     };
 
-    // Delete image handler
-    const handleDeleteImage = (imageId) => {
+    const handleDeleteImage = (index) => {
         if (window.confirm('Are you sure you want to delete this image?')) {
-            setImages(prev => prev.filter(img => img.id !== imageId));
+            setImages(prev => prev.filter((_, i) => i !== index));
         }
     };
 
-    // Set main image handler
-    const handleSetMainImage = (imageId) => {
-        setImages(prev => prev.map(img => ({
-            ...img,
-            type: img.id === imageId ? 'main' : (img.type === 'main' ? 'gallery' : img.type)
-        })));
+    // Set main image (move to index 0)
+    const handleSetMainImage = (index) => {
+        const newImages = [...images];
+        const [moved] = newImages.splice(index, 1);
+        newImages.unshift(moved);
+        setImages(newImages);
     };
 
-    // Change image type handler
-    const handleChangeImageType = (imageId, newType) => {
-        setImages(prev => prev.map(img => 
-            img.id === imageId ? { ...img, type: newType } : img
-        ));
-    };
-
-    const handleSave = () => {
-        console.log('Saving hotel profile:', hotelData);
-        console.log('Images:', images);
-        alert('Hotel profile saved successfully!');
+    const handleSave = async () => {
+        if (!selectedHotel) return;
+        try {
+            const payload = {
+                ...hotelData,
+                amenities: amenities.split(',').map(s => s.trim()).filter(s => s),
+                images: images,
+            };
+            await ownerHotelManagement.updateHotel(selectedHotel.id, payload);
+            alert('Hotel profile updated successfully!');
+            fetchHotelDetails();
+        } catch (error) {
+            console.error("Failed to update profile", error);
+            alert("Failed to update: " + error.message);
+        }
     };
 
     return (
@@ -400,114 +430,35 @@ const HotelProfileManagement = () => {
                                     </p>
                                 </div>
 
-                                {/* Image Categories */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {/* Main Photo Section */}
-                                    <div className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl p-6 border-2 border-yellow-200 dark:border-yellow-800">
-                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                                            <FaStar className="text-yellow-500" />
-                                            Main Photo
-                                        </h3>
-                                        {images.find(img => img.type === 'main') ? (
-                                            <div className="relative aspect-video rounded-xl overflow-hidden">
-                                                <img 
-                                                    src={images.find(img => img.type === 'main').url} 
-                                                    alt="Main hotel photo"
-                                                    className="w-full h-full object-cover"
-                                                />
-                                                <div className="absolute inset-0 bg-black/0 hover:bg-black/50 transition-all flex items-center justify-center opacity-0 hover:opacity-100">
-                                                    <button 
-                                                        onClick={() => handleDeleteImage(images.find(img => img.type === 'main').id)}
-                                                        className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold"
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </div>
-                                                <span className="absolute top-2 left-2 px-3 py-1 bg-yellow-500 text-white text-xs font-bold rounded-full">
-                                                    ⭐ Main Photo
+                                {/* Images Grid */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {images.map((imgUrl, index) => (
+                                        <div key={index} className="relative aspect-video rounded-xl overflow-hidden group border border-gray-200 dark:border-gray-700">
+                                            <img src={imgUrl} alt={`Hotel ${index + 1}`} className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                 {index !== 0 && (
+                                                     <button 
+                                                        onClick={() => handleSetMainImage(index)}
+                                                        className="p-2 bg-yellow-500 text-white rounded-lg text-xs font-bold"
+                                                        title="Set as Main"
+                                                     >
+                                                        Main
+                                                     </button>
+                                                 )}
+                                                 <button
+                                                    onClick={() => handleDeleteImage(index)}
+                                                    className="p-2 bg-red-600 text-white rounded-lg"
+                                                 >
+                                                    <FaEnvelope className="h-4 w-4" /> {/* Reuse icon or trash */}
+                                                 </button>
+                                            </div>
+                                            {index === 0 && (
+                                                <span className="absolute top-2 left-2 px-2 py-1 bg-yellow-500 text-white text-xs font-bold rounded">
+                                                    Main
                                                 </span>
-                                            </div>
-                                        ) : (
-                                            <div className="aspect-video rounded-xl bg-gray-200 dark:bg-slate-700 flex items-center justify-center">
-                                                <p className="text-gray-500 dark:text-gray-400">No main photo set</p>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Room Photos Section */}
-                                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border-2 border-blue-200 dark:border-blue-800">
-                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                                            <FaBuilding className="text-blue-500" />
-                                            Room Photos ({images.filter(img => img.type === 'room').length})
-                                        </h3>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {images.filter(img => img.type === 'room').slice(0, 4).map((image) => (
-                                                <div key={image.id} className="relative aspect-video rounded-lg overflow-hidden group">
-                                                    <img src={image.url} alt="Room" className="w-full h-full object-cover" />
-                                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                                                        <button 
-                                                            onClick={() => handleSetMainImage(image.id)}
-                                                            className="p-2 bg-yellow-500 text-white rounded-lg text-xs"
-                                                            title="Set as main"
-                                                        >
-                                                            ⭐
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => handleDeleteImage(image.id)}
-                                                            className="p-2 bg-red-600 text-white rounded-lg text-xs"
-                                                        >
-                                                            ✕
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                            )}
                                         </div>
-                                    </div>
-                                </div>
-
-                                {/* Gallery Section */}
-                                <div>
-                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                                        All Gallery Images ({images.filter(img => img.type === 'gallery').length})
-                                    </h3>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                        {images.filter(img => img.type === 'gallery').map((image) => (
-                                            <div key={image.id} className="relative aspect-video rounded-xl overflow-hidden group">
-                                                <img src={image.url} alt="Gallery" className="w-full h-full object-cover" />
-                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                                                    <button 
-                                                        onClick={() => handleSetMainImage(image.id)}
-                                                        className="p-2 bg-yellow-500 text-white rounded-lg text-sm font-semibold"
-                                                        title="Set as main photo"
-                                                    >
-                                                        ⭐ Main
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => handleChangeImageType(image.id, 'room')}
-                                                        className="p-2 bg-blue-500 text-white rounded-lg text-sm font-semibold"
-                                                        title="Mark as room photo"
-                                                    >
-                                                        🛏️ Room
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => handleDeleteImage(image.id)}
-                                                        className="p-2 bg-red-600 text-white rounded-lg text-sm font-semibold"
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        
-                                        {/* Add More Button */}
-                                        <button 
-                                            onClick={() => document.getElementById('hotel-image-upload').click()}
-                                            className="aspect-video border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl flex flex-col items-center justify-center hover:border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all"
-                                        >
-                                            <span className="text-3xl mb-2">➕</span>
-                                            <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Add More</span>
-                                        </button>
-                                    </div>
+                                    ))}
                                 </div>
 
                                 {/* Tips */}
