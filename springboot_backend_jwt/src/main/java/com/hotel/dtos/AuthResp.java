@@ -16,4 +16,10 @@ public class AuthResp {
     private String role;
     private String name;
 
+    public AuthResp(String jwt, String message) {
+        this.jwt = jwt;
+        this.message = message;
+        this.role = "user"; // Default role
+        this.name = "User"; // Default name
+    }
 }

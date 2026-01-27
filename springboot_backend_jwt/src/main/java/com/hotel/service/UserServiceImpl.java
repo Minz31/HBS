@@ -141,8 +141,21 @@ public class UserServiceImpl implements UserService {
             }
 
             String jwtToken = jwtUtils.generateToken(user.getEmail(), user.getUserRole().name(), user.getId());
-            return new AuthResp(jwtToken, "Login successful", user.getUserRole().name(),
-                    user.getFirstName() + " " + user.getLastName());
+
+            // --- Map role to frontend friendly format ---
+            String role = "user";
+            if (user.getUserRole() == UserRole.ROLE_ADMIN)
+                role = "admin";
+            else if (user.getUserRole() == UserRole.ROLE_HOTEL_MANAGER)
+                role = "owner";
+
+            String name = user.getFirstName();
+            if (user.getLastName() != null)
+                name += " " + user.getLastName();
+
+            return new AuthResp(jwtToken, "Login successful", role, name);
+            // ---------------------------------------------
+
         } catch (Exception e) {
             log.error("Authentication failed for user: {}", request.getEmail(), e);
             throw new AuthenticationFailedException(e.getMessage());

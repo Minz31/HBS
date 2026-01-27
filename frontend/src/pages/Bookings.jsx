@@ -10,7 +10,8 @@ import {
   ClockIcon,
   PencilIcon,
   StarIcon,
-  ArrowDownTrayIcon
+  ArrowDownTrayIcon,
+  ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { FaTicketAlt, FaStar } from "react-icons/fa";
@@ -19,6 +20,7 @@ import { useReviews } from "../context/ReviewsContext";
 import AccountLayout from "../components/AccountLayout";
 import { downloadInvoice } from "../utils/bookingUtils";
 import customerAPI from "../services/customerAPI";
+import { complaintAPI } from "../services/completeAPI";
 
 const currency = (v) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
@@ -31,6 +33,7 @@ const Bookings = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showComplaintModal, setShowComplaintModal] = useState(false); // New Complaint Modal State
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [filter, setFilter] = useState('all');
   const [editForm, setEditForm] = useState({
@@ -42,6 +45,11 @@ const Bookings = () => {
     rating: 5,
     title: '',
     comment: ''
+  });
+  // New Complaint Form State
+  const [complaintForm, setComplaintForm] = useState({
+    subject: '',
+    description: ''
   });
 
   // Load bookings from backend API
@@ -56,6 +64,7 @@ const Bookings = () => {
       const response = await customerAPI.bookingsPage.loadBookings();
       const backendBookings = response.map(booking => ({
         id: booking.id,
+        hotelId: booking.hotelId,
         hotel: booking.hotelName,
         city: booking.hotelCity,
         roomType: booking.roomTypeName,
@@ -164,6 +173,39 @@ const Bookings = () => {
     setShowReviewModal(false);
     setSelectedBooking(null);
     alert('Thank you for your review! Your rating contributes to the hotel\'s overall score.');
+  };
+
+  // Open Complaint Modal
+  const openComplaintModal = (booking) => {
+    setSelectedBooking(booking);
+    setComplaintForm({
+      subject: '',
+      description: ''
+    });
+    setShowComplaintModal(true);
+  };
+
+  // Submit Complaint
+  const handleComplaintSubmit = async () => {
+    if (!complaintForm.subject.trim() || !complaintForm.description.trim()) {
+      alert('Please fill in both subject and description.');
+      return;
+    }
+
+    try {
+      await complaintAPI.raiseComplaint({
+        bookingId: selectedBooking.id,
+        hotelId: selectedBooking.hotelId || selectedBooking.hotel.id, // Ensure hotelId is passed correctly
+        subject: complaintForm.subject,
+        description: complaintForm.description
+      });
+      alert('Complaint raised successfully. Our team will look into it.');
+      setShowComplaintModal(false);
+      setSelectedBooking(null);
+    } catch (error) {
+      console.error('Failed to raise complaint:', error);
+      alert('Failed to submit complaint. Please try again.');
+    }
   };
 
   // Filter bookings
@@ -417,6 +459,17 @@ const Bookings = () => {
                             Write a Review
                           </button>
                         )}
+
+                        {/* Report Issue - For any booking that is not cancelled */}
+                        {booking.status !== 'cancelled' && (
+                           <button
+                             onClick={() => openComplaintModal(booking)}
+                             className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-600 dark:text-red-400 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                           >
+                              <ExclamationTriangleIcon className="h-4 w-4" />
+                              Report Issue
+                           </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -582,6 +635,71 @@ const Bookings = () => {
                 className="flex-1 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-xl font-bold hover:from-yellow-500 hover:to-yellow-600"
               >
                 Submit Review
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Complaint Modal */}
+      {showComplaintModal && selectedBooking && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <ExclamationTriangleIcon className="h-6 w-6 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold dark:text-white">Report an Issue</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{selectedBooking.hotel}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Subject *
+                </label>
+                <select
+                  value={complaintForm.subject}
+                  onChange={(e) => setComplaintForm({...complaintForm, subject: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white"
+                >
+                    <option value="">Select an issue...</option>
+                    <option value="Cleanliness">Cleanliness Issue</option>
+                    <option value="Staff Behavior">Staff Behavior</option>
+                    <option value="Facilities Mismatch">Facilities Mismatch</option>
+                    <option value="Payment Issue">Payment Issue</option>
+                    <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Description *
+                </label>
+                <textarea
+                  rows="4"
+                  value={complaintForm.description}
+                  onChange={(e) => setComplaintForm({...complaintForm, description: e.target.value})}
+                  placeholder="Please describe the issue in detail..."
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl dark:bg-gray-700 dark:text-white resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowComplaintModal(false)}
+                className="flex-1 py-3 border border-gray-300 dark:border-gray-600 rounded-xl font-semibold dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleComplaintSubmit}
+                className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700"
+              >
+                Submit Complaint
               </button>
             </div>
           </div>

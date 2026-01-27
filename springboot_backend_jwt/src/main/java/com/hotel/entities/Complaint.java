@@ -31,6 +31,11 @@ public class Complaint extends BaseEntity {
     @ToString.Exclude
     private Hotel hotel;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booking_id")
+    @ToString.Exclude
+    private Booking booking;
+
     @Column(nullable = false)
     private String subject;
 
@@ -38,7 +43,7 @@ public class Complaint extends BaseEntity {
     private String description;
 
     @Column(nullable = false)
-    private String status = "PENDING"; // PENDING, RESOLVED
+    private String status = "PENDING"; // PENDING, RESOLVED, REJECTED
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -48,4 +53,8 @@ public class Complaint extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String resolution;
+
+    @Column(name = "admin_comment", columnDefinition = "TEXT")
+    private String adminComment;
+
 }

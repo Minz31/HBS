@@ -9,9 +9,10 @@ import com.hotel.entities.Complaint;
 
 @Repository
 public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
-    List<Complaint> findByHotelId(Long hotelId);
 
     List<Complaint> findByUserId(Long userId);
+
+    List<Complaint> findByHotelId(Long hotelId);
 
     List<Complaint> findByStatus(String status);
 }

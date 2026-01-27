@@ -11,6 +11,7 @@ import lombok.Setter;
 public class BookingResponseDTO {
     private Long id;
     private String bookingReference;
+    private Long hotelId;
     private String hotelName;
     private String hotelCity;
     private String hotelState;
@@ -35,4 +36,8 @@ public class BookingResponseDTO {
     private String paymentStatus;
     private String paymentMethod;
     private String transactionId;
+
+    // Registered User details
+    private String userEmail;
+    private String userName;
 }

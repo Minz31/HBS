@@ -10,9 +10,12 @@ import {
     FaCreditCard,
     FaMobileAlt
 } from 'react-icons/fa';
+
 import OwnerLayout from '../../layouts/OwnerLayout';
-import { ownerPayment } from '../../services/completeAPI';
+import AdminLayout from '../../layouts/AdminLayout';
+import { ownerPayment, adminAPI } from '../../services/completeAPI';
 import { useHotel } from '../../context/HotelContext';
+
 
 const PaymentsManagement = () => {
     const { selectedHotel } = useHotel();
