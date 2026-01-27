@@ -141,6 +141,16 @@ export const adminAPI = {
   getRecentHotels: () => api.get('/admin/hotels/recent'),
 };
 
+// ============ COMPLAINT APIs ============
+
+export const complaintAPI = {
+  raiseComplaint: (complaintData) => api.post('/complaints', complaintData),
+  getMyComplaints: () => api.get('/complaints/my-complaints'),
+  getAllComplaints: () => api.get('/complaints'),
+  resolveComplaint: (id, status, comment) => 
+    api.patch(`/complaints/${id}/resolve`, null, { params: { status, comment } }),
+};
+
 // ============ INVOICE SERVICE (.NET) ============
 
 export const invoiceAPI = {
@@ -287,5 +297,7 @@ export default {
   adminBookingManagement,
   adminBookingManagement,
   adminSystemAnalytics,
+  adminSystemAnalytics,
   adminLocationManagement,
+  complaintAPI,
 };

@@ -69,12 +69,17 @@ export const AuthProvider = ({ children }) => {
 
   // Get user initials for avatar
   const getUserInitials = () => {
-    if (!user?.name) return 'U';
-    const names = user.name.split(' ');
+    if (!user?.name || user.name === 'undefined') return 'U';
+    
+    // Split by space and filter out any "undefined" or "null" strings that might have crept in
+    const names = user.name.split(' ').filter(n => n && n.toLowerCase() !== 'undefined' && n.toLowerCase() !== 'null');
+    
+    if (names.length === 0) return 'U';
+    
     if (names.length >= 2) {
       return `${names[0][0]}${names[1][0]}`.toUpperCase();
     }
-    return user.name[0].toUpperCase();
+    return names[0].substring(0, 1).toUpperCase();
   };
 
   const value = {

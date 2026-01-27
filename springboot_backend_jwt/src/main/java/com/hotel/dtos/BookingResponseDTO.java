@@ -11,6 +11,7 @@ import lombok.Setter;
 public class BookingResponseDTO {
     private Long id;
     private String bookingReference;
+    private Long hotelId;
     private String hotelName;
     private String hotelCity;
     private String hotelState;
