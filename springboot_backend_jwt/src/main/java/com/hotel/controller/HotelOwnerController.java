@@ -122,6 +122,12 @@ public class HotelOwnerController {
         return ResponseEntity.ok(hotelOwnerService.deleteRoom(hotelId, roomId, principal.getName()));
     }
 
+    // Room Statistics - Real-time occupancy data
+    @GetMapping("/hotels/{hotelId}/room-stats")
+    public ResponseEntity<com.hotel.dtos.RoomStatsDTO> getRoomStats(@PathVariable Long hotelId, Principal principal) {
+        return ResponseEntity.ok(hotelOwnerService.getRoomStats(hotelId, principal.getName()));
+    }
+
     // Booking Management
     @GetMapping("/bookings")
     public ResponseEntity<List<BookingResponseDTO>> getMyHotelBookings(Principal principal) {
