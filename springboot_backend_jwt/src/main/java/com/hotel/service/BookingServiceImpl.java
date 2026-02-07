@@ -21,6 +21,8 @@ import com.hotel.repository.BookingRepository;
 import com.hotel.repository.HotelRepository;
 import com.hotel.repository.RoomTypeRepository;
 import com.hotel.repository.UserRepository;
+import com.hotel.repository.RoomOccupancyRepository;
+import com.hotel.repository.RoomRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +38,8 @@ public class BookingServiceImpl implements BookingService {
     private final HotelRepository hotelRepository;
     private final RoomTypeRepository roomTypeRepository;
     private final RoomOccupancyService roomOccupancyService;
-    private final com.hotel.repository.RoomOccupancyRepository roomOccupancyRepository;
+    private final RoomOccupancyRepository roomOccupancyRepository;
+    private final RoomRepository roomRepository;
     private final InvoiceService invoiceService;
 
     @Override
@@ -248,6 +251,9 @@ public class BookingServiceImpl implements BookingService {
 
             booking.setStatus("CANCELLED");
             bookingRepository.save(booking);
+            
+            // Cancel room occupancy and free up the rooms
+            roomOccupancyService.cancelRoomOccupancy(bookingId);
 
             // Free the rooms by cancelling occupancy
             roomOccupancyService.cancelRoomOccupancy(bookingId);
@@ -271,6 +277,12 @@ public class BookingServiceImpl implements BookingService {
         dto.setCheckInDate(booking.getCheckInDate());
         dto.setCheckOutDate(booking.getCheckOutDate());
         dto.setTotalPrice(booking.getTotalPrice());
+        
+        // Set frozen pricing fields
+        dto.setPricePerNight(booking.getPricePerNight());
+        dto.setNights(booking.getNights());
+        dto.setBaseAmount(booking.getBaseAmount());
+        
         dto.setStatus(booking.getStatus());
         dto.setAdults(booking.getAdults());
         dto.setChildren(booking.getChildren());
@@ -283,17 +295,18 @@ public class BookingServiceImpl implements BookingService {
         dto.setPaymentStatus(booking.getPaymentStatus());
         dto.setPaymentMethod(booking.getPaymentMethod());
         dto.setTransactionId(booking.getTransactionId());
-
-        // Get assigned room numbers from RoomOccupancy
-        List<String> roomNumbers = roomOccupancyRepository
-                .findByBookingId(booking.getId())
-                .stream()
+        
+        // Get assigned room numbers from room_occupancy table
+        List<com.hotel.entities.RoomOccupancy> occupancies = roomOccupancyRepository.findByBookingId(booking.getId());
+        List<String> roomNumbers = occupancies.stream()
                 .filter(ro -> "ACTIVE".equals(ro.getStatus()) || "COMPLETED".equals(ro.getStatus()))
-                .map(ro -> ro.getRoom().getRoomNumber())
+                .map(occ -> occ.getRoom().getRoomNumber())
                 .sorted()
                 .collect(java.util.stream.Collectors.toList());
+        
         dto.setAssignedRoomNumbers(roomNumbers);
-
+        dto.setRoomNumbersDisplay(String.join(", ", roomNumbers));
+        
         return dto;
     }
 }

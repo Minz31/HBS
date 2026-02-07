@@ -76,10 +76,26 @@ public class HotelServiceImpl implements HotelService {
         try {
             log.info("Searching hotels with city: {}, state: {}, destination: {}", city, state, destination);
 
-            if (city != null && !city.trim().isEmpty()) {
-                return hotelRepository.findByCityContainingIgnoreCaseAndStatus(city, "APPROVED");
+            // Priority 1: Use destination for combined search (name, city, state - case
+            // insensitive)
+            if (destination != null && !destination.trim().isEmpty()) {
+                log.info("Searching by destination (name/city/state): {}", destination);
+                return hotelRepository.searchByNameCityOrState(destination.trim(), "APPROVED");
             }
 
+            // Priority 2: Search by city (case insensitive)
+            if (city != null && !city.trim().isEmpty()) {
+                log.info("Searching by city: {}", city);
+                return hotelRepository.searchByNameCityOrState(city.trim(), "APPROVED");
+            }
+
+            // Priority 3: Search by state (case insensitive)
+            if (state != null && !state.trim().isEmpty()) {
+                log.info("Searching by state: {}", state);
+                return hotelRepository.searchByNameCityOrState(state.trim(), "APPROVED");
+            }
+
+            // Default: return all approved hotels
             return hotelRepository.findByStatus("APPROVED");
         } catch (Exception e) {
             log.error("Error searching hotels", e);
@@ -315,12 +331,16 @@ public class HotelServiceImpl implements HotelService {
         }
 
         com.hotel.entities.User user = modelMapper.map(userDTO, com.hotel.entities.User.class);
+
+        // Explicitly set email to prevent ModelMapper corruption
+        user.setEmail(userDTO.getEmail());
+
         user.setUserRole(UserRole.ROLE_HOTEL_MANAGER); // Explicitly set as Manager
         user.setAccountStatus(AccountStatus.ACTIVE);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         com.hotel.entities.User savedUser = userRepository.save(user);
-        log.info("User created with ID: {}", savedUser.getId());
+        log.info("User created with ID: {} with email: {}", savedUser.getId(), savedUser.getEmail());
 
         // 2. Create Hotel
         HotelDTO hotelDTO = registrationDTO.getHotel();
@@ -369,12 +389,16 @@ public class HotelServiceImpl implements HotelService {
         }
 
         com.hotel.entities.User user = modelMapper.map(userDTO, com.hotel.entities.User.class);
+
+        // Explicitly set email to prevent ModelMapper corruption
+        user.setEmail(userDTO.getEmail());
+
         user.setUserRole(UserRole.ROLE_HOTEL_MANAGER); // Explicitly set as Manager
         user.setAccountStatus(AccountStatus.ACTIVE);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
         com.hotel.entities.User savedUser = userRepository.save(user);
-        log.info("User created with ID: {}", savedUser.getId());
+        log.info("User created with ID: {} with email: {}", savedUser.getId(), savedUser.getEmail());
 
         // 2. Create Hotel
         HotelDTO hotelDTO = registrationDTO.getHotel();

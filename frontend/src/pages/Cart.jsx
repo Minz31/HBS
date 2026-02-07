@@ -14,11 +14,12 @@ import {
 import { calculateNights, currency } from "../utils/bookingUtils";
 import customerAPI from "../services/customerAPI";
 import { useAuth } from "../context/AuthContext";
-import toast from 'react-hot-toast';
+import { useToast } from "../contexts/ToastContext";
 
 const Cart = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const [cartItems, setCartItems] = useState(() => {
     return JSON.parse(localStorage.getItem("hotelCart") || "[]");
   });
@@ -28,7 +29,7 @@ const Cart = () => {
   // Proceed to checkout - Create actual booking
   const handleCheckout = async () => {
     if (cartItems.length === 0 || !isAuthenticated) {
-      alert('Please login to proceed with booking.');
+      showToast('Please login to proceed with booking.', 'warning');
       navigate('/login');
       return;
     }
@@ -36,11 +37,11 @@ const Cart = () => {
     try {
       await customerAPI.cartPage.checkout(cartItems);
       clearCart();
-      alert('Booking confirmed! Check your bookings page.');
+      showToast('Booking confirmed! Check your bookings page.', 'success');
       navigate('/bookings');
     } catch (error) {
       console.error('Booking failed:', error);
-      alert(`Booking failed: ${error.message || 'Please try again.'}`);
+      showToast(`Booking failed: ${error.message || 'Please try again.'}`, 'error');
     }
   };
 

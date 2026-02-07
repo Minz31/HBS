@@ -5,6 +5,7 @@ import { ShoppingCartIcon } from '@heroicons/react/24/solid';
 import customerAPI from '../services/customerAPI';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
+import { getDisplayImage, getImageArray } from '../utils/defaultImages';
 
 const HotelDetails = () => {
     const { id } = useParams();
@@ -26,13 +27,15 @@ const HotelDetails = () => {
             const data = await customerAPI.hotels.getById(id);
             const roomsData = await customerAPI.hotels.getRooms(id);
 
-            // Parse images
+            // Parse images - use default if none exist
             let images = [];
             try {
                 images = typeof data.images === 'string' ? JSON.parse(data.images) : data.images || [];
             } catch {
-                images = [data.images || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=60'];
+                images = [];
             }
+            // Get images with fallback to default hotel image
+            images = getImageArray(images, 'hotel');
 
             // Parse amenities
             const amenities = [];
@@ -46,7 +49,10 @@ const HotelDetails = () => {
             setRooms(roomsData.map(rt => ({
                 ...rt,
                 amenities: typeof rt.amenities === 'string' ? JSON.parse(rt.amenities) : (rt.amenities || []),
-                images: typeof rt.images === 'string' ? JSON.parse(rt.images) : (rt.images || []),
+                images: getImageArray(
+                    typeof rt.images === 'string' ? JSON.parse(rt.images) : (rt.images || []),
+                    rt.name // room type name for default image selection
+                ),
             })));
             setLoading(false);
         } catch (error) {
@@ -266,9 +272,9 @@ const HotelDetails = () => {
                                         <div key={room.id} className="border dark:border-gray-700 rounded-xl overflow-hidden hover:border-blue-500 transition-colors">
                                             <div className="flex flex-col md:flex-row">
                                                 <div className="md:w-1/3 h-48 md:h-auto overflow-hidden">
-                                                    <img
-                                                        src={room.images[0] || 'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800'}
-                                                        alt={room.name}
+                                                    <img 
+                                                        src={getDisplayImage(room.images, room.name)} 
+                                                        alt={room.name} 
                                                         className="w-full h-full object-cover"
                                                     />
                                                 </div>

@@ -41,12 +41,14 @@ import AdminLogs from './pages/admin/AdminLogs';
 // Context Providers
 import { HotelProvider } from './context/HotelContext';
 import { ReviewsProvider } from './context/ReviewsContext';
+import { ToastProvider } from './contexts/ToastContext';
 
 function App() {
   return (
-    <HotelProvider>
-      <ReviewsProvider>
-        <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <ToastProvider>
+      <HotelProvider>
+        <ReviewsProvider>
+          <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
           <Navbar />
           <main className="flex-grow">
             <Routes>
@@ -91,9 +93,10 @@ function App() {
             </Routes>
           </main>
           <Footer />
-        </div>
-      </ReviewsProvider>
-    </HotelProvider>
+          </div>
+        </ReviewsProvider>
+      </HotelProvider>
+    </ToastProvider>
   );
 }
 
