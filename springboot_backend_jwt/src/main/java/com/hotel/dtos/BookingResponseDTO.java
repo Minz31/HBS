@@ -2,6 +2,7 @@ package com.hotel.dtos;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -40,4 +41,8 @@ public class BookingResponseDTO {
     // Registered User details
     private String userEmail;
     private String userName;
+    
+    // Room assignment details
+    private List<String> assignedRoomNumbers;  // e.g., ["101", "102"]
+    private String roomNumbersDisplay;  // e.g., "101, 102"
 }

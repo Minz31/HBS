@@ -24,7 +24,7 @@ import { complaintAPI } from "../services/completeAPI";
 import ReviewModal from "../components/ReviewModal";
 import ComplaintModal from "../components/ComplaintModal";
 import BookingNotificationBanner from "../components/BookingNotificationBanner";
-import toast from 'react-hot-toast';
+import { useToast } from "../contexts/ToastContext";
 
 const currency = (v) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
@@ -32,6 +32,7 @@ const currency = (v) =>
 const Bookings = () => {
   const { isAuthenticated, user } = useAuth();
   const { addReview } = useReviews();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -80,6 +81,8 @@ const Bookings = () => {
         status: booking.status.toLowerCase(),
         bookingDate: booking.bookingDate,
         bookingReference: booking.bookingReference,
+        roomNumbers: booking.roomNumbersDisplay || 'Not assigned yet',
+        assignedRoomNumbers: booking.assignedRoomNumbers || [],
         image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&q=60",
         reviewed: false
       }));
@@ -96,9 +99,9 @@ const Bookings = () => {
       // Show toast for newly cancelled bookings
       if (newlyCancelled.length > 0) {
         newlyCancelled.forEach(booking => {
-          toast.error(
+          showToast(
             `Booking cancelled: ${booking.hotelName} (${booking.bookingReference})`,
-            { duration: 6000 }
+            'error'
           );
         });
       }
@@ -120,7 +123,7 @@ const Bookings = () => {
       setSelectedBooking(null);
     } catch (error) {
       console.error('Error cancelling booking:', error);
-      alert('Failed to cancel booking. Please try again.');
+      showToast('Failed to cancel booking. Please try again.', 'error');
     }
   };
 
@@ -358,6 +361,15 @@ const Bookings = () => {
                             {booking.guests} Guests, {booking.rooms} Room
                           </p>
                         </div>
+                        {booking.roomNumbers && booking.roomNumbers !== 'Not assigned yet' && (
+                          <div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Room Number(s)</p>
+                            <p className="font-semibold dark:text-white flex items-center gap-1">
+                              <TicketIcon className="h-4 w-4 text-green-500" />
+                              {booking.roomNumbers}
+                            </p>
+                          </div>
+                        )}
                         <div>
                           <p className="text-xs text-gray-500 dark:text-gray-400">Total Amount</p>
                           <p className="text-xl font-bold text-blue-600 dark:text-blue-400">

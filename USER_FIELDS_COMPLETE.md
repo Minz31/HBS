@@ -1,335 +1,143 @@
-# User Fields & Suspension Management - Complete Implementation
+# User Fields Implementation - DOB and Address Mandatory
 
-## ✅ All Changes Made
+## Status: COMPLETE ✅
 
-### 1. User Entity - Default Values Set
-**File**: `springboot_backend_jwt/src/main/java/com/hotel/entities/User.java`
+## Changes Made
 
-```java
-@Column(name = "account_status", length = 20)
-private String accountStatus = "ACTIVE"; // Default value
+### 1. Frontend Changes - RegisterPage.jsx
+- ✅ Removed 18+ age restriction from DOB validation
+- ✅ Changed `max` attribute to allow any past date (not just 18+ years ago)
+- ✅ DOB validation now only checks:
+  - Field is required
+  - Date cannot be in the future
+- ✅ Address field remains mandatory with 10-255 character validation
+- ✅ Real-time validation with error messages
+- ✅ Visual error indicators (red borders)
 
-@Column(name = "suspension_reason", length = 100)
-private String suspensionReason;
-```
+### 2. Frontend Changes - Hoteliers.jsx (Hotel Owner Registration)
+- ✅ Added DOB field to Step 1 (Owner Details)
+- ✅ Added Address field to Step 1 (Owner Details)
+- ✅ Both fields are now included in the registration payload
+- ✅ Date picker with max date set to today (no future dates)
+- ✅ Address textarea with placeholder text
+- ✅ Updated form state to include `ownerDob` and `ownerAddress`
+- ✅ Updated registration data to send DOB and address to backend
 
-**Result**: All new users will have `account_status = "ACTIVE"` by default.
+### 3. Backend Changes (Already Complete)
+- ✅ User entity has `nullable = false` for both `dob` and `address`
+- ✅ UserRegDTO has comprehensive validation:
+  - `@NotNull` for DOB
+  - `@Past` for DOB (must be in the past)
+  - `@NotBlank` for address
+  - `@Size(min = 10, max = 255)` for address
+- ✅ DataLoader creates all users with valid DOB and address values
 
----
-
-### 2. Suspension Reason Enum Created
-**File**: `springboot_backend_jwt/src/main/java/com/hotel/entities/SuspensionReason.java`
-
-```java
-public enum SuspensionReason {
-    MULTIPLE_FAILED_LOGIN_ATTEMPTS("Multiple failed login attempts"),
-    PAYMENT_FAILURES("Payment failures"),
-    FRAUDULENT_TRANSACTIONS("Fraudulent transactions"),
-    TERMS_AND_CONDITIONS_VIOLATION("Terms and conditions violation"),
-    MULTIPLE_CANCELLATIONS("Multiple cancellations"),
-    ADMIN_SUSPENDED("Suspended by admin"),
-    ACCOUNT_UNDER_REVIEW("Account under review"),
-    USER_REQUESTED_SUSPENSION("User requested suspension");
-}
-```
-
-**Usage**: Clean, type-safe suspension reasons for future enhancements.
-
----
-
-### 3. Registration Form - All Fields Required
-**File**: `frontend/src/pages/RegisterPage.jsx`
-
-**Updated Fields**:
-```javascript
-{
-    firstName: '',      // ✅ Required
-    lastName: '',       // ✅ Required
-    email: '',          // ✅ Required
-    password: '',       // ✅ Required
-    phone: '',          // ✅ Required (changed from optional)
-    address: '',        // ✅ Optional
-    regAmount: 500      // ✅ Default value
-}
-```
-
-**Result**: All critical fields will be filled on registration.
-
----
-
-### 4. Customer Management - Suspension Reasons
-**File**: `frontend/src/pages/admin/CustomerManagement.jsx`
-
-**Suspension Reasons Dropdown**:
-1. Multiple failed login attempts
-2. Payment failures
-3. Fraudulent transactions
-4. Terms and conditions violation
-5. Multiple cancellations
-6. Suspended by admin
-7. Account under review
-8. User requested suspension
-
-**Result**: Admins select from predefined reasons when suspending users.
-
----
-
-## Database Schema - Complete
-
-### users table:
+### 4. Database Fix Script Created
+Created `fix_null_user_fields.sql` to handle existing users with NULL values:
 ```sql
-CREATE TABLE users (
-    user_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    first_name VARCHAR(30),           -- ✅ Required
-    last_name VARCHAR(30),            -- ✅ Required
-    email VARCHAR(50) UNIQUE,         -- ✅ Required
-    password VARCHAR(255) NOT NULL,   -- ✅ Required (encrypted)
-    phone VARCHAR(14) UNIQUE,         -- ✅ Required
-    address VARCHAR(255),             -- ✅ Optional
-    dob DATE,                         -- ✅ Optional
-    reg_amount INT DEFAULT 500,       -- ✅ Default 500
-    user_role VARCHAR(20),            -- ✅ ROLE_CUSTOMER/ROLE_HOTEL_MANAGER/ROLE_ADMIN
-    account_status VARCHAR(20) DEFAULT 'ACTIVE',  -- ✅ ACTIVE/SUSPENDED
-    suspension_reason VARCHAR(100),   -- ✅ Reason if suspended
-    image LONGBLOB,                   -- ✅ Optional
-    created_on DATE,                  -- ✅ Auto-generated
-    last_updated TIMESTAMP            -- ✅ Auto-updated
-);
-```
+-- Check for users with NULL DOB or address
+SELECT user_id, email, first_name, last_name, dob, address 
+FROM users 
+WHERE dob IS NULL OR address IS NULL;
 
----
-
-## User Registration Flow
-
-### Frontend → Backend:
-```javascript
-// Frontend sends:
-{
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "john@example.com",
-    "password": "password123",
-    "phone": "1234567890",
-    "address": "123 Main St",
-    "regAmount": 500
-}
-
-// Backend creates:
-User {
-    firstName: "John",
-    lastName: "Doe",
-    email: "john@example.com",
-    password: "$2a$10$...", // Encrypted
-    phone: "1234567890",
-    address: "123 Main St",
-    regAmount: 500,
-    userRole: ROLE_CUSTOMER,
-    accountStatus: "ACTIVE",  // ✅ Default
-    suspensionReason: null,
-    createdOn: "2024-01-27",
-    lastUpdated: "2024-01-27 13:00:00"
-}
-```
-
----
-
-## User Suspension Flow
-
-### Admin Suspends User:
-```javascript
-// 1. Admin clicks "Suspend" button
-// 2. Dropdown shows 8 suspension reasons
-// 3. Admin selects reason (e.g., "Payment failures")
-// 4. Frontend calls API:
-adminAPI.suspendUser(userId, "Payment failures")
-
-// 5. Backend updates:
+-- Update users with NULL DOB to a default date
 UPDATE users 
-SET account_status = 'SUSPENDED',
-    suspension_reason = 'Payment failures',
-    last_updated = NOW()
-WHERE user_id = ?;
+SET dob = '1990-01-01' 
+WHERE dob IS NULL;
 
-// 6. User cannot login (checked in authenticate())
-```
-
-### Admin Activates User:
-```javascript
-// 1. Admin clicks "Activate" button
-// 2. Frontend calls API:
-adminAPI.activateUser(userId)
-
-// 3. Backend updates:
+-- Update users with NULL address to a default value
 UPDATE users 
-SET account_status = 'ACTIVE',
-    suspension_reason = NULL,
-    last_updated = NOW()
-WHERE user_id = ?;
-
-// 4. User can login again
+SET address = 'Not provided' 
+WHERE address IS NULL OR address = '';
 ```
 
----
+## How to Fix Gmail Login Error
 
-## Testing Checklist
+If you're experiencing login errors with Gmail accounts, it's likely because those users have NULL values for DOB or address. Follow these steps:
 
-### ✅ Test User Registration
+### Option 1: Use the Batch Script (Easiest)
+Simply run the provided batch script:
 ```bash
-1. Go to /register
-2. Fill all fields:
-   - First Name: John
-   - Last Name: Doe
-   - Email: john@test.com
-   - Password: password123
-   - Phone: 1234567890
-   - Address: 123 Main St
-3. Click "Sign up"
-4. Verify user created in database
-5. Check all fields are filled (no NULL except optional)
+check_and_fix_users.bat
 ```
 
-### ✅ Test User Suspension
+This will:
+1. Check for users with NULL DOB or address
+2. Ask for confirmation
+3. Fix the NULL values automatically
+4. Verify the fix
+
+### Option 2: Manual SQL Execution
+Run this query in your database:
+```sql
+-- Check for NULL values
+SELECT user_id, email, first_name, last_name, dob, address 
+FROM users 
+WHERE dob IS NULL OR address IS NULL OR address = '';
+
+-- Fix NULL DOB
+UPDATE users SET dob = '1990-01-01' WHERE dob IS NULL;
+
+-- Fix NULL/empty address
+UPDATE users SET address = 'Not provided' WHERE address IS NULL OR address = '';
+```
+
+### Option 3: Use SQL File
 ```bash
-1. Login as admin (admin@stays.in / admin123)
-2. Go to /admin/customers
-3. Find a customer
-4. Click "Suspend" button
-5. Select suspension reason from dropdown
-6. Verify user status changes to SUSPENDED
-7. Verify suspension_reason is saved
-8. Try to login as suspended user
-9. Verify login fails with suspension message
+mysql -u root -proot hotel_booking_db < fix_null_user_fields.sql
 ```
 
-### ✅ Test User Activation
-```bash
-1. Login as admin
-2. Go to /admin/customers
-3. Find suspended customer
-4. Click "Activate" button
-5. Verify user status changes to ACTIVE
-6. Verify suspension_reason is cleared
-7. Try to login as activated user
-8. Verify login succeeds
-```
+### After Fixing
+The backend should automatically pick up the changes. If you still have issues:
+1. Restart the Spring Boot backend (it's already running on port 8080)
+2. Try logging in with your Gmail account again
+3. It should work now!
 
----
+## Validation Rules
 
-## SQL Queries for Verification
+### Frontend (RegisterPage.jsx)
+- **First Name**: Required, 2-30 characters
+- **Last Name**: Required, 2-30 characters
+- **Email**: Required, valid email format
+- **Password**: Required, minimum 6 characters
+- **Phone**: Required, 10-14 digits
+- **DOB**: Required, must be in the past (no age restriction)
+- **Address**: Required, 10-255 characters
 
-### Check all users with filled fields:
-```sql
-SELECT 
-    user_id,
-    first_name,
-    last_name,
-    email,
-    phone,
-    address,
-    account_status,
-    suspension_reason,
-    user_role
-FROM users;
-```
+### Backend (UserRegDTO.java)
+- **First Name**: `@NotBlank`, `@Size(min = 2, max = 30)`
+- **Last Name**: `@NotBlank`, `@Size(min = 2, max = 30)`
+- **Email**: `@NotBlank`, `@Email`
+- **Password**: `@NotBlank`, `@Size(min = 6)`
+- **Phone**: `@NotBlank`, `@Pattern(regexp = "^[0-9]{10,14}$")`
+- **DOB**: `@NotNull`, `@Past`
+- **Address**: `@NotBlank`, `@Size(min = 10, max = 255)`
 
-### Check suspended users:
-```sql
-SELECT 
-    user_id,
-    CONCAT(first_name, ' ', last_name) as name,
-    email,
-    account_status,
-    suspension_reason
-FROM users
-WHERE account_status = 'SUSPENDED';
-```
+## Testing
 
-### Update existing NULL account_status:
-```sql
-UPDATE users 
-SET account_status = 'ACTIVE' 
-WHERE account_status IS NULL;
-```
+### Test New User Registration (Customer)
+1. Go to `/register`
+2. Fill in all fields including DOB (any past date) and address
+3. Submit the form
+4. Should successfully create account and redirect to login
 
----
+### Test Hotel Owner Registration
+1. Go to `/hoteliers`
+2. Click "Register Your Hotel"
+3. Step 1: Fill in owner details including DOB and address
+4. Step 2: Fill in hotel details
+5. Step 3: Select amenities and submit
+6. Should successfully create owner account + hotel and auto-login
 
-## API Endpoints Summary
+### Test Existing User Login
+1. Ensure database has been fixed (no NULL values)
+2. Go to `/login`
+3. Enter email and password
+4. Should successfully log in without errors
 
-### User Registration:
-```
-POST /api/users/signup
-Body: {
-    "firstName": "string",
-    "lastName": "string",
-    "email": "string",
-    "password": "string",
-    "phone": "string",
-    "address": "string" (optional)
-}
-Response: UserDTO
-```
-
-### User Suspension:
-```
-PATCH /api/admin/users/{id}/suspend?reason=Payment%20failures
-Headers: Authorization: Bearer <admin_token>
-Response: { "status": "Success", "message": "User suspended" }
-```
-
-### User Activation:
-```
-PATCH /api/admin/users/{id}/activate
-Headers: Authorization: Bearer <admin_token>
-Response: { "status": "Success", "message": "User activated" }
-```
-
-### Get All Users:
-```
-GET /api/admin/users
-Headers: Authorization: Bearer <admin_token>
-Response: List<User>
-```
-
----
-
-## Features Verified
-
-✅ **User Registration** - All required fields filled
-✅ **Default Values** - account_status = "ACTIVE", regAmount = 500
-✅ **Suspension Enum** - 8 predefined reasons
-✅ **Admin Suspension** - Select reason from dropdown
-✅ **Admin Activation** - Clear suspension reason
-✅ **Login Check** - Suspended users cannot login
-✅ **Database Integration** - All fields properly mapped
-✅ **Frontend-Backend** - Complete integration working
-
----
-
-## No Breaking Changes
-
-✅ All existing features continue to work
-✅ Backward compatible with existing users
-✅ NULL account_status treated as ACTIVE
-✅ Registration flow unchanged (just added fields)
-✅ Login flow unchanged (added suspension check)
-✅ Admin panel fully functional
-
----
-
-## Summary
-
-**All user fields are now properly filled:**
-- ✅ firstName, lastName, email, password, phone - Required
-- ✅ address - Optional
-- ✅ account_status - Default "ACTIVE"
-- ✅ regAmount - Default 500
-- ✅ user_role - Set based on registration type
-
-**Suspension management is clean:**
-- ✅ Enum-based suspension reasons
-- ✅ Admin can suspend with reason
-- ✅ Admin can activate users
-- ✅ Suspended users cannot login
-- ✅ Full audit trail in database
-
-**Everything is working end-to-end!**
+## Notes
+- Age restriction has been completely removed - users can enter any date of birth as long as it's in the past
+- All new users must provide DOB and address during registration
+- Existing users with NULL values must be fixed using the SQL script
+- The backend will reject any registration attempts without DOB or address
+- DataLoader creates sample users with valid DOB and address values

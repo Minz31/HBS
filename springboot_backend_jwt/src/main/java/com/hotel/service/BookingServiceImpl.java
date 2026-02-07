@@ -21,6 +21,8 @@ import com.hotel.repository.BookingRepository;
 import com.hotel.repository.HotelRepository;
 import com.hotel.repository.RoomTypeRepository;
 import com.hotel.repository.UserRepository;
+import com.hotel.repository.RoomOccupancyRepository;
+import com.hotel.repository.RoomRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,8 @@ public class BookingServiceImpl implements BookingService {
     private final HotelRepository hotelRepository;
     private final RoomTypeRepository roomTypeRepository;
     private final RoomOccupancyService roomOccupancyService;
+    private final RoomOccupancyRepository roomOccupancyRepository;
+    private final RoomRepository roomRepository;
 
     @Override
     public BookingResponseDTO createBooking(BookingDTO bookingDTO, String userEmail) {
@@ -237,6 +241,9 @@ public class BookingServiceImpl implements BookingService {
 
             booking.setStatus("CANCELLED");
             bookingRepository.save(booking);
+            
+            // Cancel room occupancy and free up the rooms
+            roomOccupancyService.cancelRoomOccupancy(bookingId);
 
             log.info("Booking cancelled successfully: {}", booking.getBookingReference());
             return new ApiResponse("Success", "Booking cancelled successfully");
@@ -269,6 +276,16 @@ public class BookingServiceImpl implements BookingService {
         dto.setPaymentStatus(booking.getPaymentStatus());
         dto.setPaymentMethod(booking.getPaymentMethod());
         dto.setTransactionId(booking.getTransactionId());
+        
+        // Get assigned room numbers from room_occupancy table
+        List<com.hotel.entities.RoomOccupancy> occupancies = roomOccupancyRepository.findByBookingId(booking.getId());
+        List<String> roomNumbers = occupancies.stream()
+                .map(occ -> occ.getRoom().getRoomNumber())
+                .collect(java.util.stream.Collectors.toList());
+        
+        dto.setAssignedRoomNumbers(roomNumbers);
+        dto.setRoomNumbersDisplay(String.join(", ", roomNumbers));
+        
         return dto;
     }
 }

@@ -12,9 +12,11 @@ import {
 import OwnerLayout from '../../layouts/OwnerLayout';
 import { useHotel } from '../../context/HotelContext';
 import { ownerRoomManagement } from '../../services/completeAPI';
+import { useToast } from '../../contexts/ToastContext';
 
 const RoomManagement = () => {
     const { selectedHotel } = useHotel();
+    const { showToast } = useToast();
     const [rooms, setRooms] = useState([]);
     const [roomTypes, setRoomTypes] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +46,7 @@ const RoomManagement = () => {
             setRooms(data);
         } catch (error) {
             console.error('Failed to fetch rooms', error);
-            alert('Failed to load rooms: ' + error.message);
+            showToast('Failed to load rooms: ' + error.message, 'error');
         } finally {
             setIsLoading(false);
         }
@@ -114,21 +116,21 @@ const RoomManagement = () => {
         try {
             await ownerRoomManagement.deleteRoomFromList(selectedHotel.id, room.id);
             await fetchRooms();
-            alert('Room deleted successfully');
+            showToast('Room deleted successfully', 'success');
         } catch (error) {
             console.error('Failed to delete room', error);
-            alert('Failed to delete: ' + error.message);
+            showToast('Failed to delete: ' + error.message, 'error');
         }
     };
 
     const handleAddRoom = async () => {
         if (!selectedHotel) {
-            alert('No hotel selected!');
+            showToast('No hotel selected!', 'warning');
             return;
         }
 
         if (!formData.roomNumber || !formData.roomTypeId) {
-            alert('Please fill in all required fields');
+            showToast('Please fill in all required fields', 'warning');
             return;
         }
 
@@ -142,17 +144,17 @@ const RoomManagement = () => {
 
             if (editingRoom) {
                 await ownerRoomManagement.updateRoomInList(selectedHotel.id, editingRoom.id, payload);
-                alert('Room updated successfully');
+                showToast('Room updated successfully', 'success');
             } else {
                 await ownerRoomManagement.addRoomToList(selectedHotel.id, payload);
-                alert('Room added successfully');
+                showToast('Room added successfully', 'success');
             }
 
             await fetchRooms();
             resetForm();
         } catch (error) {
             console.error('Failed to save room', error);
-            alert('Failed to save: ' + error.message);
+            showToast('Failed to save: ' + error.message, 'error');
         }
     };
 
